@@ -1,0 +1,7 @@
+{
+  "medicine_id": "norflex",
+  "name": "노르플록스",
+  "type": "항생제",
+  "times_per_day": 2,
+  "timing": "식전 1시간"
+}

@@ -1,0 +1,7 @@
+{
+  "medicine_id": "amoxapen",
+  "name": "아목사펜",
+  "type": "항생제",
+  "times_per_day": 3,
+  "timing": "식사 30분 후"
+}
