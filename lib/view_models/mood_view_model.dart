@@ -41,15 +41,14 @@ class MoodViewModel extends AsyncNotifier<void> {
       await _repository.deleteMood(moodId);
     });
   }
-
-  Stream<List<MoodModel>> watchMoods() {
-    final user = ref.read(authRepo).user;
-    if (user == null) return Stream.value([]);
-
-    return _repository.watchMoods(user.uid);
-  }
 }
 
 final moodProvider = AsyncNotifierProvider<MoodViewModel, void>(
   () => MoodViewModel(),
 );
+
+final moodStreamProvider = StreamProvider<List<MoodModel>>((ref) {
+  final user = ref.read(authRepo).user;
+  if (user == null) return const Stream.empty();
+  return ref.read(moodRepo).watchMoods(user.uid);
+});

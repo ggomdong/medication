@@ -21,14 +21,10 @@ class RecordViewModel extends StateNotifier<void> {
     }
 
     final newModel = MediModel(
-      mId: "",
-      medicine_id: model.medicine_id,
+      medicineId: model.medicineId,
       name: model.name,
       type: model.type,
-      times_per_day: model.times_per_day,
-      timing: mealTime,
-      createdAt: now,
-      creatorUid: currentUser.uid,
+      link: model.link,
     );
 
     // await _read(recordRepositoryProvider).saveRecord(newModel);

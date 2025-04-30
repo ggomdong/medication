@@ -28,22 +28,15 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = isDarkMode(ref);
-    final moodStream = ref.watch(moodProvider.notifier).watchMoods();
+    final moodStream = ref.watch(moodStreamProvider);
 
     return Scaffold(
       appBar: CommonAppBar(),
-      body: StreamBuilder<List<MoodModel>>(
-        stream: moodStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator.adaptive());
-          }
-
-          List<MoodModel> moods = [];
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            moods = snapshot.data!;
-          }
-
+      body: moodStream.when(
+        loading:
+            () => const Center(child: CircularProgressIndicator.adaptive()),
+        error: (err, _) => Center(child: Text("오류 발생: $err")),
+        data: (moods) {
           moodMap.clear();
 
           for (var mood in moods) {
@@ -54,10 +47,7 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                   DateTime.fromMillisecondsSinceEpoch(mood.createdAt).day,
                 ).millisecondsSinceEpoch;
 
-            if (!moodMap.containsKey(moodDate)) {
-              moodMap[moodDate] = [];
-            }
-            moodMap[moodDate]!.add(mood);
+            moodMap.putIfAbsent(moodDate, () => []).add(mood);
           }
 
           // 최초 로딩시 오늘날짜의 mood를 가져오기 위한 작업

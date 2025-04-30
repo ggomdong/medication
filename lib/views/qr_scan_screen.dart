@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:medication/models/prescription_model.dart';
+import 'package:medication/router.dart';
 import '../models/medi_model.dart';
 import '../views/record_screen.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -41,22 +44,10 @@ class _QRScanScreenState extends State<QRScanScreen>
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        final data = jsonDecode(decodedBody);
-        final model = MediModel(
-          mId: '', // Firestore 저장 시 새로 생성
-          medicine_id: data['medicine_id'],
-          name: data['name'],
-          type: data['type'],
-          times_per_day: data['times_per_day'].toString(),
-          timing: data['timing'],
-          createdAt: 0, // 저장 시 새로 생성
-          creatorUid: '',
-        );
+        final jsonData = jsonDecode(decodedBody);
+        final prescription = PrescriptionModel.fromJson(jsonData);
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => RecordScreen(mediModel: model)),
-        );
+        context.push(RouteURL.prescription, extra: prescription);
       } else {
         throw Exception('API 호출 실패');
       }
@@ -126,7 +117,7 @@ class ScannerOverlayPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint backgroundPaint =
         Paint()
-          ..color = Colors.black.withOpacity(0.3) // 더 얇은 어둡기 (0.3 정도)
+          ..color = Colors.black.withValues(alpha: 0.3)
           ..style = PaintingStyle.fill;
 
     final double holeLeft = (size.width - holeSize) / 2;

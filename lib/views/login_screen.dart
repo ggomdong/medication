@@ -1,3 +1,5 @@
+import 'package:medication/router.dart';
+
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 import '../view_models/login_view_model.dart';
@@ -11,8 +13,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
-  static const routeUrl = "/";
-  static const routeName = "login";
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _onSignUpTap() {
-    context.pushNamed(SignUpScreen.routeName);
+    context.pushNamed(RouteName.signup);
   }
 
   @override

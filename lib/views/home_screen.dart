@@ -13,8 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
-  static const routeUrl = "/home";
-  static const routeName = "home";
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
@@ -22,7 +20,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _textEditingController = TextEditingController();
-  List<MoodModel> _moods = [];
+  final List<MoodModel> _moods = [];
 
   void _onScaffoldTap() {
     FocusScope.of(context).unfocus();
@@ -43,7 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = isDarkMode(ref);
-    final moodStream = ref.watch(moodProvider.notifier).watchMoods();
+    final moodStream = ref.watch(moodStreamProvider);
 
     return GestureDetector(
       onTap: _onScaffoldTap,
@@ -56,28 +54,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Gaps.v10,
               Expanded(
-                child: StreamBuilder<List<MoodModel>>(
-                  stream: moodStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator.adaptive(),
-                      );
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [Text("복약 기록이 없네요. 처음으로 기록해볼까요?")],
-                        ),
-                      );
+                child: moodStream.when(
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(child: Text("오류 발생: $error")),
+                  data: (moods) {
+                    if (moods.isEmpty) {
+                      return const Center(child: Text("복약 기록이 없어요."));
                     }
 
-                    _moods = snapshot.data!.toList();
                     return ListView.builder(
-                      itemCount: _moods.length,
+                      itemCount: moods.length,
                       itemBuilder: (context, index) {
-                        final mood = _moods[index];
+                        final mood = moods[index];
                         final date = DateFormat(
                           'yyyy-MM-dd (E) HH:mm',
                           'ko',

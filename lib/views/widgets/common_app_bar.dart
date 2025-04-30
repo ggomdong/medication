@@ -1,3 +1,5 @@
+import 'package:medication/router.dart';
+
 import '../../constants/gaps.dart';
 import '../../repos/authentication_repo.dart';
 import '../../utils.dart';
@@ -26,7 +28,7 @@ class CommonAppBar extends ConsumerWidget implements PreferredSizeWidget {
               CupertinoDialogAction(
                 onPressed: () {
                   ref.read(authRepo).signOut();
-                  context.go("/");
+                  context.go(RouteURL.login);
                 },
                 isDestructiveAction: true,
                 child: const Text("예"),

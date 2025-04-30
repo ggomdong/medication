@@ -1,3 +1,6 @@
+import 'package:medication/views/prescription_screen.dart';
+import 'package:medication/views/qr_scan_screen.dart';
+
 import '../views/mood_calendar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +13,6 @@ import '../views/post_screen.dart';
 import '../utils.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
-  static const String routeName = "mainNavigation";
   const MainNavigationScreen({super.key, required this.tab});
 
   final String tab;
@@ -54,12 +56,14 @@ class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       body: Stack(
         children: [
           Offstage(offstage: _selectedIndex != 0, child: const HomeScreen()),
-          Offstage(offstage: _selectedIndex != 1, child: PostScreen()),
+          Offstage(offstage: _selectedIndex != 1, child: QRScanScreen()),
           Offstage(offstage: _selectedIndex != 2, child: MoodCalendarScreen()),
-          Offstage(
-            offstage: _selectedIndex != 3,
-            child: Center(child: Text("포인트샵")),
-          ),
+          // 테스트용
+          Offstage(offstage: _selectedIndex != 3, child: PrescriptionScreen()),
+          // Offstage(
+          //   offstage: _selectedIndex != 3,
+          //   child: Center(child: Text("포인트샵")),
+          // ),
           Offstage(
             offstage: _selectedIndex != 4,
             child: Center(child: Text("마이페이지")),

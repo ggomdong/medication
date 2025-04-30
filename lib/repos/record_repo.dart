@@ -10,6 +10,6 @@ class RecordRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Future<void> saveRecord(MediModel model) async {
-    await _db.collection('medications').doc(model.mId).set(model.toJson());
+    // await _db.collection('medications').doc(model.mId).set(model.toJson());
   }
 }

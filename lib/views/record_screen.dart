@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/medi_model.dart'; // MediModel import
 import '../view_models/record_view_model.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RecordScreen extends ConsumerStatefulWidget {
   final MediModel mediModel;
@@ -29,8 +29,6 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
           children: [
             Text('약 이름: ${widget.mediModel.name}'),
             Text('종류: ${widget.mediModel.type}'),
-            Text('복약 횟수: ${widget.mediModel.times_per_day}회'),
-            Text('복약 시간: ${widget.mediModel.timing}'),
             const SizedBox(height: 20),
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: '식사시간 선택'),

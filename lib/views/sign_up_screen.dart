@@ -10,8 +10,6 @@ import 'package:go_router/go_router.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
-  static const routeUrl = "/signUp";
-  static const routeName = "signUp";
 
   @override
   ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
