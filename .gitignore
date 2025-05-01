@@ -147,8 +147,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # Firebase
-firebase-debug.log
-lib/firebase_options.dart
 node_modules/
 .firepit-log.txt
 

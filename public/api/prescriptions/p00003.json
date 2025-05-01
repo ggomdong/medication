@@ -1,0 +1,24 @@
+{
+  "prescription_id": "p00003",
+  "diagnosis": "기침 및 가래",
+  "startDate": "2025-05-03",
+  "endDate": "2025-05-10",
+  "timing_description": "식후 30분",
+  "times": [],
+  "medicines": [
+    {
+      "medicine_id": "A11APPPPP0882",
+      "name": "레보드롭정",
+      "ingredient": "레보드로프로피진",
+      "type": "진해제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11APPPPP0882"
+    },
+    {
+      "medicine_id": "2009071505405",
+      "name": "뮤코펙트정",
+      "ingredient": "암브록솔",
+      "type": "거담제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=2009071505405"
+    }
+  ]
+}

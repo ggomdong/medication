@@ -1,0 +1,24 @@
+{
+  "prescription_id": "p00001",
+  "diagnosis": "급성 위염",
+  "startDate": "2025-05-01",
+  "endDate": "2025-05-07",
+  "timing_description": "식전 30분",
+  "times": [],
+  "medicines": [
+    {
+      "medicine_id": "A11AGGGGA5272",
+      "name": "넥시움정 40mg",
+      "ingredient": "에스오메프라졸",
+      "type": "위산억제제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11AGGGGA5272"
+    },
+    {
+      "medicine_id": "A11AIIIII0006",
+      "name": "가스모틴정",
+      "ingredient": "모사프리드",
+      "type": "위장운동 촉진제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11AIIIII0006"
+    }
+  ]
+}

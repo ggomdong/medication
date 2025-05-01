@@ -1,53 +1,62 @@
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
-import '../utils.dart';
-import '../views/widgets/calendar.dart';
+import '../models/prescription_model.dart';
+import '../view_models/prescription_view_model.dart';
+import '../views/widgets/prescription_card.dart';
 import '../views/widgets/common_app_bar.dart';
-import '../views/widgets/mood_card.dart';
+import '../views/widgets/calendar.dart';
+import '../utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../view_models/mood_view_model.dart';
-import '../models/mood_model.dart';
 
-class MoodCalendarScreen extends ConsumerStatefulWidget {
-  const MoodCalendarScreen({super.key});
+class CalendarScreen extends ConsumerStatefulWidget {
+  const CalendarScreen({super.key});
 
   @override
-  ConsumerState<MoodCalendarScreen> createState() => _MoodCalendarScreenState();
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   final ValueNotifier<DateTime> _selectedDay = ValueNotifier(DateTime.now());
-  final ValueNotifier<List<MoodModel>> _selectedMoods = ValueNotifier([]);
-  Map<int, List<MoodModel>> moodMap = {};
+  final ValueNotifier<List<PrescriptionModel>> _selectedPrescriptions =
+      ValueNotifier([]);
+  Map<int, List<PrescriptionModel>> prescriptionMap = {};
   bool _isFirstLoading = true;
 
   @override
   Widget build(BuildContext context) {
     final isDark = isDarkMode(ref);
-    final moodStream = ref.watch(moodStreamProvider);
+    final prescriptionStream = ref.watch(prescriptionStreamProvider);
 
     return Scaffold(
       appBar: CommonAppBar(),
-      body: moodStream.when(
+      body: prescriptionStream.when(
         loading:
             () => const Center(child: CircularProgressIndicator.adaptive()),
         error: (err, _) => Center(child: Text("오류 발생: $err")),
-        data: (moods) {
-          moodMap.clear();
+        data: (prescriptionList) {
+          prescriptionMap.clear();
 
-          for (var mood in moods) {
-            final moodDate =
+          for (var prescription in prescriptionList) {
+            final prescriptionDate =
                 DateTime(
-                  DateTime.fromMillisecondsSinceEpoch(mood.createdAt).year,
-                  DateTime.fromMillisecondsSinceEpoch(mood.createdAt).month,
-                  DateTime.fromMillisecondsSinceEpoch(mood.createdAt).day,
+                  DateTime.fromMillisecondsSinceEpoch(
+                    prescription.createdAt,
+                  ).year,
+                  DateTime.fromMillisecondsSinceEpoch(
+                    prescription.createdAt,
+                  ).month,
+                  DateTime.fromMillisecondsSinceEpoch(
+                    prescription.createdAt,
+                  ).day,
                 ).millisecondsSinceEpoch;
 
-            moodMap.putIfAbsent(moodDate, () => []).add(mood);
+            prescriptionMap
+                .putIfAbsent(prescriptionDate, () => [])
+                .add(prescription);
           }
 
           // 최초 로딩시 오늘날짜의 mood를 가져오기 위한 작업
@@ -60,7 +69,7 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                 ).millisecondsSinceEpoch;
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _selectedMoods.value = moodMap[todayMillis] ?? [];
+              _selectedPrescriptions.value = prescriptionMap[todayMillis] ?? [];
             });
 
             _isFirstLoading = false;
@@ -94,7 +103,8 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                             ).millisecondsSinceEpoch; // 시간 정보 제거
 
                         _selectedDay.value = selectedDay;
-                        _selectedMoods.value = moodMap[normalizedDay] ?? [];
+                        _selectedPrescriptions.value =
+                            prescriptionMap[normalizedDay] ?? [];
                       },
                       onPageChanged: (newFocusedDay) {
                         // 오늘 버튼을 눌렀을 때는 월 변경 로직을 실행하지 않도록 예외 처리
@@ -113,8 +123,9 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                         _selectedDay.value = newFirstDay;
                         final firstDayMillis =
                             newFirstDay.millisecondsSinceEpoch;
-                        _selectedMoods.value =
-                            moodMap[firstDayMillis] ?? []; // 해당 월의 1일 Mood 불러오기
+                        _selectedPrescriptions.value =
+                            prescriptionMap[firstDayMillis] ??
+                            []; // 해당 월의 1일 Mood 불러오기
                       },
                       daysOfWeekStyle: DaysOfWeekStyle(
                         weekdayStyle: TextStyle(
@@ -156,8 +167,8 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
 
                                   _focusedDay = today;
                                   _selectedDay.value = today;
-                                  _selectedMoods.value =
-                                      moodMap[todayMillis] ?? [];
+                                  _selectedPrescriptions.value =
+                                      prescriptionMap[todayMillis] ?? [];
                                 },
                                 child: const Text(
                                   "오늘",
@@ -178,14 +189,15 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                                 day.month,
                                 day.day,
                               ).millisecondsSinceEpoch;
-                          final moods = moodMap[dayMillis] ?? [];
+                          final moods = prescriptionMap[dayMillis] ?? [];
+                          return null;
 
-                          return Calendar(
-                            day: day,
-                            moods: moods,
-                            selectedDay: selectedDay,
-                            ref: ref,
-                          );
+                          // return Calendar(
+                          //   day: day,
+                          //   moods: moods,
+                          //   selectedDay: selectedDay,
+                          //   ref: ref,
+                          // );
                         },
                         selectedBuilder: (context, day, focusedDay) {
                           final dayMillis =
@@ -194,14 +206,15 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                                 day.month,
                                 day.day,
                               ).millisecondsSinceEpoch;
-                          final moods = moodMap[dayMillis] ?? [];
+                          final moods = prescriptionMap[dayMillis] ?? [];
+                          return null;
 
-                          return Calendar(
-                            day: day,
-                            moods: moods,
-                            selectedDay: selectedDay,
-                            ref: ref,
-                          );
+                          // return Calendar(
+                          //   day: day,
+                          //   moods: moods,
+                          //   selectedDay: selectedDay,
+                          //   ref: ref,
+                          // );
                         },
                         todayBuilder: (context, day, focusedDay) {
                           final dayMillis =
@@ -210,14 +223,15 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                                 day.month,
                                 day.day,
                               ).millisecondsSinceEpoch;
-                          final moods = moodMap[dayMillis] ?? [];
+                          final moods = prescriptionMap[dayMillis] ?? [];
+                          return null;
 
-                          return Calendar(
-                            day: day,
-                            moods: moods,
-                            selectedDay: selectedDay,
-                            ref: ref,
-                          );
+                          // return Calendar(
+                          //   day: day,
+                          //   moods: moods,
+                          //   selectedDay: selectedDay,
+                          //   ref: ref,
+                          // );
                         },
                       ),
                     );
@@ -226,8 +240,8 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
               ),
               Gaps.v20,
               Expanded(
-                child: ValueListenableBuilder<List<MoodModel>>(
-                  valueListenable: _selectedMoods,
+                child: ValueListenableBuilder<List<PrescriptionModel>>(
+                  valueListenable: _selectedPrescriptions,
                   builder: (context, moods, _) {
                     return moods.isNotEmpty
                         ? ListView.builder(
@@ -246,14 +260,17 @@ class _MoodCalendarScreenState extends ConsumerState<MoodCalendarScreen> {
                               padding: EdgeInsets.symmetric(
                                 horizontal: Sizes.size32,
                               ),
-                              child: MoodCard(date: date, mood: mood),
+                              child: PrescriptionCard(
+                                date: date,
+                                prescription: mood,
+                              ),
                             );
                           },
                         )
                         : const Padding(
                           padding: EdgeInsets.all(Sizes.size16),
                           child: Text(
-                            '작성된 글이 없어요.',
+                            '복약 기록이 없어요.',
                             style: TextStyle(fontSize: Sizes.size16),
                           ),
                         );

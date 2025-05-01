@@ -1,7 +1,8 @@
 import 'package:medication/views/prescription_screen.dart';
+import 'package:medication/views/profile_screen.dart';
 import 'package:medication/views/qr_scan_screen.dart';
 
-import '../views/mood_calendar_screen.dart';
+import 'calendar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -9,7 +10,6 @@ import 'package:go_router/go_router.dart';
 import '../constants/sizes.dart';
 import '../views/widgets/nav_tab.dart';
 import '../views/home_screen.dart';
-import '../views/post_screen.dart';
 import '../utils.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
@@ -22,7 +22,7 @@ class MainNavigationScreen extends ConsumerStatefulWidget {
 }
 
 class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
-  final List<String> _tabs = ["home", "post", "calendar", "shop", "mypage"];
+  final List<String> _tabs = ["home", "qr", "calendar", "shop", "profile"];
 
   late int _selectedIndex =
       _tabs.contains(widget.tab) ? _tabs.indexOf(widget.tab) : 0;
@@ -57,17 +57,14 @@ class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         children: [
           Offstage(offstage: _selectedIndex != 0, child: const HomeScreen()),
           Offstage(offstage: _selectedIndex != 1, child: QRScanScreen()),
-          Offstage(offstage: _selectedIndex != 2, child: MoodCalendarScreen()),
+          Offstage(offstage: _selectedIndex != 2, child: CalendarScreen()),
           // 테스트용
           Offstage(offstage: _selectedIndex != 3, child: PrescriptionScreen()),
           // Offstage(
           //   offstage: _selectedIndex != 3,
           //   child: Center(child: Text("포인트샵")),
           // ),
-          Offstage(
-            offstage: _selectedIndex != 4,
-            child: Center(child: Text("마이페이지")),
-          ),
+          Offstage(offstage: _selectedIndex != 4, child: ProfileScreen()),
         ],
       ),
       bottomNavigationBar: Container(

@@ -1,20 +1,22 @@
-import 'package:medication/models/prescription_model.dart';
-import 'package:medication/views/prescription_screen.dart';
-import 'package:medication/views/splash_screen.dart';
-
-import '../repos/authentication_repo.dart';
-import '../views/login_screen.dart';
-import 'views/main_navigation_screen.dart';
-import '../views/sign_up_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../models/prescription_model.dart';
+import '../views/prescription_screen.dart';
+import '../views/splash_screen.dart';
+import '../views/login_screen.dart';
+import '../views/main_navigation_screen.dart';
+import '../views/sign_up_screen.dart';
 
 class RouteURL {
   static const splash = "/splash";
   static const login = "/login";
   static const signup = "/signup";
   static const home = "/home";
+  static const qr = "/qr";
   static const prescription = "/prescription";
+  static const profile = "/profile";
+  static const settings = "/settings";
 }
 
 class RouteName {
@@ -22,22 +24,16 @@ class RouteName {
   static const login = "login";
   static const signup = "signup";
   static const home = "home";
+  static const qr = "qr";
   static const prescription = "prescription";
+  static const profile = "profile";
+  static const settings = "settings";
 }
 
 final routerProvider = Provider((ref) {
   return GoRouter(
     initialLocation: "/splash",
-    // redirect: (context, state) {
-    //   final isLoggedIn = ref.read(authRepo).isLoggedIn;
-    //   if (!isLoggedIn) {
-    //     if (state.matchedLocation != SignUpScreen.routeUrl &&
-    //         state.matchedLocation != LoginScreen.routeUrl) {
-    //       return LoginScreen.routeUrl;
-    //     }
-    //   }
-    //   return null;
-    // },
+
     routes: [
       GoRoute(
         name: RouteName.splash,
@@ -55,7 +51,7 @@ final routerProvider = Provider((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: "/:tab(home|post|calendar|shop|mypage)",
+        path: "/:tab(home|qr|calendar|shop|profile)",
         builder: (context, state) {
           final tab = state.pathParameters["tab"] ?? "";
           return MainNavigationScreen(tab: tab);

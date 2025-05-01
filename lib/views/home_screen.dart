@@ -1,12 +1,10 @@
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
-import '../models/mood_model.dart';
-import '../view_models/mood_view_model.dart';
-import '../views/widgets/mood_card.dart';
+import '../view_models/prescription_view_model.dart';
+import '../views/widgets/common_app_bar.dart';
+import '../views/widgets/prescription_card.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import '../utils.dart';
-import '../views/widgets/common_app_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,9 +17,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final TextEditingController _textEditingController = TextEditingController();
-  final List<MoodModel> _moods = [];
-
   void _onScaffoldTap() {
     FocusScope.of(context).unfocus();
   }
@@ -33,15 +28,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   @override
-  void dispose() {
-    _textEditingController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isDark = isDarkMode(ref);
-    final moodStream = ref.watch(moodStreamProvider);
+    final prescriptionStream = ref.watch(prescriptionStreamProvider);
 
     return GestureDetector(
       onTap: _onScaffoldTap,
@@ -54,27 +42,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Gaps.v10,
               Expanded(
-                child: moodStream.when(
+                child: prescriptionStream.when(
                   loading:
                       () => const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(child: Text("오류 발생: $error")),
-                  data: (moods) {
-                    if (moods.isEmpty) {
-                      return const Center(child: Text("복약 기록이 없어요."));
+                  data: (prescriptionList) {
+                    if (prescriptionList.isEmpty) {
+                      return const Center(child: Text("등록된 처방전이 없어요."));
                     }
 
                     return ListView.builder(
-                      itemCount: moods.length,
+                      padding: const EdgeInsets.all(Sizes.size16),
+                      itemCount: prescriptionList.length,
                       itemBuilder: (context, index) {
-                        final mood = moods[index];
-                        final date = DateFormat(
-                          'yyyy-MM-dd (E) HH:mm',
-                          'ko',
-                        ).format(
-                          DateTime.fromMillisecondsSinceEpoch(mood.createdAt),
-                        );
+                        final prescription = prescriptionList[index];
+                        final start = DateFormat(
+                          "yyyy.MM.dd",
+                        ).format(prescription.startDate);
+                        final end = DateFormat(
+                          "yyyy.MM.dd",
+                        ).format(prescription.endDate);
+                        final dateText = "$start ~ $end";
 
-                        return MoodCard(date: date, mood: mood);
+                        return PrescriptionCard(
+                          date: dateText,
+                          prescription: prescription,
+                        );
                       },
                     );
                   },

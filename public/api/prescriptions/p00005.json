@@ -1,0 +1,45 @@
+{
+  "prescription_id": "p00005",
+  "diagnosis": "복합 감염",
+  "startDate": "2025-05-05",
+  "endDate": "2025-05-12",
+  "timing_description": "아침/점심/저녁 식후",
+  "times": [],
+  "medicines": [
+    {
+      "medicine_id": "2013072200018",
+      "name": "클래신정 500mg",
+      "ingredient": "클라리트로마이신",
+      "type": "항생제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=2013072200018"
+    },
+    {
+      "medicine_id": "2019121800009",
+      "name": "세파쿨러캡슐",
+      "ingredient": "세파클러",
+      "type": "항생제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=2019121800009"
+    },
+    {
+      "medicine_id": "2021082400002",
+      "name": "타이레놀정 500mg",
+      "ingredient": "아세트아미노펜",
+      "type": "해열진통제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=2021082400002"
+    },
+    {
+      "medicine_id": "A11A0500A0097",
+      "name": "부루펜정 200mg",
+      "ingredient": "이부프로펜",
+      "type": "소염진통제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11A0500A0097"
+    },
+    {
+      "medicine_id": "A11ABBBBB1394",
+      "name": "알레그라정 180mg",
+      "ingredient": "펙소페나딘",
+      "type": "항히스타민제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11ABBBBB1394"
+    }
+  ]
+}

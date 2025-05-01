@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication/models/prescription_model.dart';
+import 'package:medication/repos/authentication_repo.dart';
 import 'package:medication/router.dart';
-import '../models/medi_model.dart';
-import '../views/record_screen.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class QRScanScreen extends StatefulWidget {
+class QRScanScreen extends ConsumerStatefulWidget {
   const QRScanScreen({super.key});
 
   @override
-  State<QRScanScreen> createState() => _QRScanScreenState();
+  ConsumerState<QRScanScreen> createState() => _QRScanScreenState();
 }
 
-class _QRScanScreenState extends State<QRScanScreen>
+class _QRScanScreenState extends ConsumerState<QRScanScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -39,15 +39,30 @@ class _QRScanScreenState extends State<QRScanScreen>
     super.dispose();
   }
 
-  Future<void> fetchMedicineData(BuildContext context, String url) async {
+  Future<void> fetchMedicineData(
+    WidgetRef ref,
+    BuildContext context,
+    String url,
+  ) async {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final jsonData = jsonDecode(decodedBody);
-        final prescription = PrescriptionModel.fromJson(jsonData);
+        final uid = ref.read(authRepo).user?.uid ?? "";
+        final createdAt = DateTime.now().millisecondsSinceEpoch;
 
-        context.push(RouteURL.prescription, extra: prescription);
+        final prescription = PrescriptionModel.fromJson(
+          jsonData,
+        ).copyWith(prescriptionId: null, uid: uid, createdAt: createdAt);
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.pushReplacement(RouteURL.prescription, extra: prescription);
+          }
+        });
       } else {
         throw Exception('API 호출 실패');
       }
@@ -61,8 +76,7 @@ class _QRScanScreenState extends State<QRScanScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final holeLeft = (size.width - holeSize) / 2;
-    final holeTop = (size.height - holeSize) / 2;
+    bool isProcessing = false;
 
     return Scaffold(
       appBar: AppBar(title: const Text("QR 스캔")),
@@ -70,10 +84,13 @@ class _QRScanScreenState extends State<QRScanScreen>
         children: [
           MobileScanner(
             onDetect: (barcodeCapture) async {
+              if (isProcessing) return;
+              isProcessing = true;
+
               final barcode = barcodeCapture.barcodes.first;
               final String? url = barcode.rawValue;
               if (url != null) {
-                await fetchMedicineData(context, url);
+                await fetchMedicineData(ref, context, url);
               }
             },
           ),

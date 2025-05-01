@@ -1,0 +1,24 @@
+{
+  "prescription_id": "p00004",
+  "diagnosis": "당뇨병",
+  "startDate": "2025-05-04",
+  "endDate": "2025-06-04",
+  "timing_description": "식전 15분",
+  "times": [],
+  "medicines": [
+    {
+      "medicine_id": "A11AOOOOO3089",
+      "name": "글루코파지정 500mg",
+      "ingredient": "메트포르민",
+      "type": "혈당강하제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11AOOOOO3089"
+    },
+    {
+      "medicine_id": "A11A0740A0406",
+      "name": "아마릴정 2mg",
+      "ingredient": "글리메피리드",
+      "type": "설폰요소계 혈당강하제",
+      "link": "https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11A0740A0406"
+    }
+  ]
+}
