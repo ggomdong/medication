@@ -78,7 +78,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           return Column(
             children: [
               SizedBox(
-                height: 400,
+                height: 350,
                 child: ValueListenableBuilder<DateTime>(
                   valueListenable: _selectedDay,
                   builder: (context, selectedDay, _) {
@@ -238,7 +238,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   },
                 ),
               ),
-              Gaps.v20,
               Expanded(
                 child: ValueListenableBuilder<List<PrescriptionModel>>(
                   valueListenable: _selectedPrescriptions,

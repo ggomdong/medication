@@ -7,7 +7,7 @@ class PrescriptionModel {
   final DateTime startDate; // 복약 기간 시작
   final DateTime endDate; // 복약 기간 종료
   final String timingDescription; // 복약타이밍
-  final List<String> times; // 복약 시간 (예: ["09:00", "13:00"])
+  final Map<String, List<String>> times; // 복약 시간 (예: ["09:00", "13:00"])
   final String uid; // 사용자의 Firebase UID
   final int createdAt; // 입력 시점 (timestamp: millisecondsSinceEpoch)
 
@@ -32,7 +32,15 @@ class PrescriptionModel {
               .toList(),
       startDate = DateTime.parse(json['startDate']),
       endDate = DateTime.parse(json['endDate']),
-      times = List<String>.from(json['times']),
+      times =
+          (json['times'] as Map<String, dynamic>?)?.map((key, value) {
+            if (value is List) {
+              return MapEntry(key, List<String>.from(value));
+            } else {
+              return MapEntry(key, []);
+            }
+          }) ??
+          {},
       timingDescription = json['timing_description'],
       uid = json['uid'] ?? '', // fallback for QR에서 누락된 경우
       createdAt = json['createdAt'] ?? 0;
@@ -57,7 +65,7 @@ class PrescriptionModel {
     DateTime? startDate,
     DateTime? endDate,
     String? timingDescription,
-    List<String>? times,
+    Map<String, List<String>>? times,
     String? uid,
     int? createdAt,
   }) {

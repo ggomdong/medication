@@ -1,4 +1,8 @@
-import '../constants/gaps.dart';
+import '../repos/authentication_repo.dart';
+import '../utils.dart';
+import '../view_models/schedule_view_model.dart';
+import '../views/widgets/daily_medication_schedule.dart';
+import '../views/widgets/week_date_selector.dart';
 import '../constants/sizes.dart';
 import '../view_models/prescription_view_model.dart';
 import '../views/widgets/common_app_bar.dart';
@@ -17,6 +21,15 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late final ValueNotifier<DateTime> selectedDate;
+  late final ValueNotifier<DateTime> weekStartDate;
+
+  List<DateTime> get currentWeek {
+    final today = DateTime.now();
+    final startOfWeek = today.subtract(Duration(days: today.weekday % 7));
+    return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+  }
+
   void _onScaffoldTap() {
     FocusScope.of(context).unfocus();
   }
@@ -25,6 +38,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     initializeDateFormatting('ko');
+
+    selectedDate = ValueNotifier(DateTime.now());
+    weekStartDate = ValueNotifier(getStartOfWeek(DateTime.now()));
+  }
+
+  @override
+  void dispose() {
+    selectedDate.dispose();
+    weekStartDate.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,10 +60,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         resizeToAvoidBottomInset: false,
         appBar: CommonAppBar(),
         body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: Sizes.size32),
+          padding: EdgeInsets.symmetric(horizontal: Sizes.size16),
           child: Column(
             children: [
-              Gaps.v10,
+              ValueListenableBuilder<DateTime>(
+                valueListenable: weekStartDate,
+                builder: (context, weekStart, _) {
+                  return ValueListenableBuilder<DateTime>(
+                    valueListenable: selectedDate,
+                    builder: (context, selected, _) {
+                      return WeekDateSelector(
+                        weekStartDate: weekStart,
+                        selectedDate: selected,
+                        onDateSelected: (date) {
+                          selectedDate.value = date;
+                          final uid = ref.read(authRepo).user?.uid;
+                          if (uid != null) {
+                            ref
+                                .read(scheduleViewModelProvider.notifier)
+                                .loadSchedules(uid, date);
+                          }
+                        },
+                        onPreviousWeek:
+                            () =>
+                                weekStartDate.value = weekStart.subtract(
+                                  const Duration(days: 7),
+                                ),
+                        onNextWeek:
+                            () =>
+                                weekStartDate.value = weekStart.add(
+                                  const Duration(days: 7),
+                                ),
+                      );
+                    },
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: DailyMedicationSchedule(date: selectedDate.value),
+              ),
+              const Divider(height: 1),
               Expanded(
                 child: prescriptionStream.when(
                   loading:

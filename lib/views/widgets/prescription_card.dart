@@ -106,15 +106,23 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
                     listen: false,
                   );
 
-                  await container
-                      .read(prescriptionProvider.notifier)
-                      .deletePrescription(prescriptionId);
+                  try {
+                    await container
+                        .read(prescriptionProvider.notifier)
+                        .deletePrescriptionAndSchedules(prescriptionId);
 
-                  Navigator.pop(context);
+                    // 다이얼로그 닫기
+                    Navigator.pop(context);
 
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text("삭제되었습니다.")));
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text("처방전이 삭제되었습니다.")));
+                  } catch (e) {
+                    Navigator.of(context).pop(); // 다이얼로그 닫기
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text("삭제 실패: $e")));
+                  }
                 },
                 child: const Text("삭제"),
               ),
@@ -125,10 +133,14 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final sortedEntries =
+        widget.prescription.times.entries.toList()
+          ..sort((a, b) => a.key.compareTo(b.key));
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
-      margin: const EdgeInsets.only(bottom: Sizes.size16),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(Sizes.size16),
         child: Column(
@@ -174,55 +186,95 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
               ],
             ),
             Gaps.v8,
-            Row(
-              // crossAxisAlignment: CrossAxisAlignment.start,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.access_time, size: 18, color: Colors.grey),
-                Gaps.h8,
-                Expanded(
-                  child: Wrap(
-                    spacing: 6,
-                    children:
-                        widget.prescription.times
-                            .map(
-                              (t) => Chip(
-                                label: Text(t),
-                                backgroundColor: Colors.blue.shade50,
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-              ],
-            ),
-            Gaps.v8,
-            Row(
-              children: [
-                Icon(Icons.medication, size: 18, color: Colors.grey),
-                Gaps.h8,
-                Expanded(
-                  child: SizedBox(
-                    height: 40,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children:
-                          widget.prescription.medicines
-                              .map(
-                                (m) => Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: GestureDetector(
-                                    onTap: () => _showMedicineDetailDialog(m),
-                                    child: Tooltip(
-                                      message: m.ingredient,
-                                      child: Chip(label: Text(m.name)),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                Row(
+                  children: [
+                    const Icon(Icons.schedule, size: 18, color: Colors.grey),
+                    Gaps.h6,
+                    Text(
+                      '복약 스케줄',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                Gaps.v8,
+                ...sortedEntries.map((entry) {
+                  final time = entry.key;
+                  final meds =
+                      entry.value.map((id) {
+                        return widget.prescription.medicines.firstWhere(
+                          (m) => m.medicineId == id,
+                          orElse:
+                              () => MediModel(
+                                medicineId: id,
+                                name: '알 수 없음',
+                                ingredient: '',
+                                type: '',
+                                link: '',
+                              ),
+                        );
+                      }).toList();
+
+                  return Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              time.replaceAll('"', ''),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Gaps.h8,
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children:
+                                    meds.map((m) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8,
+                                        ),
+                                        child: ActionChip(
+                                          label: Text(m.name),
+                                          avatar: const Icon(
+                                            Icons.medication,
+                                            size: 16,
+                                          ),
+                                          onPressed:
+                                              () =>
+                                                  _showMedicineDetailDialog(m),
+                                        ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Gaps.v8,
+                      const Divider(height: 1),
+                      Gaps.v8,
+                    ],
+                  );
+                }),
               ],
             ),
           ],

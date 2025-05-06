@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:medication/models/prescription_model.dart';
-import 'package:medication/repos/authentication_repo.dart';
-import 'package:medication/router.dart';
+import '../models/prescription_model.dart';
+import '../repos/authentication_repo.dart';
+import '../router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -56,8 +56,6 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
           jsonData,
         ).copyWith(prescriptionId: null, uid: uid, createdAt: createdAt);
 
-        await Future.delayed(const Duration(milliseconds: 500));
-
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
             context.pushReplacement(RouteURL.prescription, extra: prescription);
@@ -79,7 +77,7 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
     bool isProcessing = false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("QR 스캔")),
+      appBar: AppBar(centerTitle: true, title: const Text("처방전 QR 스캔")),
       body: Stack(
         children: [
           MobileScanner(

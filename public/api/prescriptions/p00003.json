@@ -4,7 +4,7 @@
   "startDate": "2025-05-03",
   "endDate": "2025-05-10",
   "timing_description": "식후 30분",
-  "times": [],
+  "times": {},
   "medicines": [
     {
       "medicine_id": "A11APPPPP0882",

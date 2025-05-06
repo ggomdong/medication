@@ -1,8 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:medication/router.dart';
+import '../notification/notification_list.dart';
+import '../repos/authentication_repo.dart';
+import '../view_models/settings_view_model.dart';
+import '../notification/notification_service.dart';
+import '../router.dart';
 import '../views/widgets/custom_button.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
@@ -19,6 +24,41 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _onGearPressed() {
     context.go(RouteURL.settings);
+  }
+
+  void _onShowModal(BuildContext context, WidgetRef ref) {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (context) => CupertinoAlertDialog(
+            title: const Text("정말 로그아웃하시겠어요?"),
+            content: const Text("가지마~~"),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("아니오"),
+              ),
+              CupertinoDialogAction(
+                onPressed: () {
+                  ref.read(authRepo).signOut();
+                  context.go("/");
+                },
+                isDestructiveAction: true,
+                child: const Text("예"),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _removeAllAlarms() async {
+    final service = ref.read(notificationServiceProvider);
+    await service.cancelAllNotifications();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("모든 알림이 삭제되었습니다.")));
+
+    setState(() {});
   }
 
   @override
@@ -84,7 +124,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            data.name,
+                                            // data.name,
+                                            data.email.split('@')[0],
                                             style: TextStyle(
                                               fontSize: Sizes.size28,
                                               fontWeight: FontWeight.w700,
@@ -93,13 +134,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           Gaps.v3,
                                           Row(
                                             children: [
-                                              Text(
-                                                data.email,
-                                                style: TextStyle(
-                                                  fontSize: Sizes.size18,
-                                                ),
-                                              ),
-                                              Gaps.h5,
+                                              // Text(
+                                              //   data.email,
+                                              //   style: TextStyle(
+                                              //     fontSize: Sizes.size18,
+                                              //   ),
+                                              // ),
+                                              // Gaps.h5,
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -114,9 +155,9 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                       ),
                                                 ),
                                                 child: Text(
-                                                  "threads.net",
+                                                  data.email,
                                                   style: TextStyle(
-                                                    fontSize: Sizes.size12,
+                                                    fontSize: Sizes.size16,
                                                     color: Colors.grey.shade500,
                                                   ),
                                                 ),
@@ -124,75 +165,6 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                             ],
                                           ),
                                           Gaps.v10,
-                                          Text(
-                                            data.bio,
-                                            style: TextStyle(
-                                              fontSize: Sizes.size18,
-                                            ),
-                                          ),
-                                          Gaps.v10,
-                                          SizedBox(
-                                            height: Sizes.size48,
-                                            width: Sizes.size96,
-                                            child: Stack(
-                                              clipBehavior: Clip.none,
-                                              children: [
-                                                Positioned(
-                                                  top: 10,
-                                                  left: 3,
-                                                  child: Container(
-                                                    width: 20,
-                                                    height: 20,
-                                                    decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      image: DecorationImage(
-                                                        image: NetworkImage(
-                                                          "https://i.pravatar.cc/150?img=1",
-                                                        ),
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 6,
-                                                  left: 15,
-                                                  child: Container(
-                                                    width: 28,
-                                                    height: 28,
-                                                    decoration: BoxDecoration(
-                                                      border: Border.all(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.black
-                                                                : Colors.white,
-                                                        width: 4,
-                                                      ),
-                                                      shape: BoxShape.circle,
-                                                      image: DecorationImage(
-                                                        image: NetworkImage(
-                                                          "https://i.pravatar.cc/150?img=2",
-                                                        ),
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Positioned(
-                                                  top: 6,
-                                                  left: 50,
-                                                  child: Text(
-                                                    "${data.followerCount} followers",
-                                                    style: TextStyle(
-                                                      fontSize: Sizes.size18,
-                                                      color:
-                                                          Colors.grey.shade500,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
                                         ],
                                       ),
                                       // Avatar(
@@ -203,12 +175,47 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ],
                                   ),
                                   Gaps.v6,
+                                  Divider(thickness: 0.5),
+                                  SwitchListTile.adaptive(
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: Sizes.size20,
+                                    ),
+                                    value: ref.watch(settingsProvider).darkMode,
+                                    onChanged:
+                                        (value) => ref
+                                            .read(settingsProvider.notifier)
+                                            .setDarkMode(value),
+                                    title: const Text(
+                                      "다크모드",
+                                      style: TextStyle(fontSize: Sizes.size18),
+                                    ),
+                                    secondary: Icon(
+                                      isDark
+                                          ? Icons.dark_mode_outlined
+                                          : Icons.light_mode_outlined,
+                                    ),
+                                  ),
+                                  ListTile(
+                                    leading: Icon(Icons.logout),
+                                    title: const Text(
+                                      "로그아웃",
+                                      style: TextStyle(fontSize: Sizes.size18),
+                                    ),
+                                    textColor: Colors.red,
+                                    onTap: () => _onShowModal(context, ref),
+                                  ),
+                                  Divider(thickness: 0.5),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      CustomButton(text: "Edit profile"),
-                                      CustomButton(text: "Share profile"),
+                                      CustomButton(text: "Settings"),
+                                      GestureDetector(
+                                        onTap: _removeAllAlarms,
+                                        child: CustomButton(
+                                          text: "Remove alarms",
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   Gaps.v20,
@@ -222,7 +229,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           // ),
                         ];
                       },
-                      body: Text("test"),
+                      body: NotificationList(),
                     ),
                   ),
                 ),

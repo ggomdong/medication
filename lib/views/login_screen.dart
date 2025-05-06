@@ -1,9 +1,7 @@
-import 'package:medication/router.dart';
-
+import '../router.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 import '../view_models/login_view_model.dart';
-import '../views/sign_up_screen.dart';
 import '../views/widgets/common_app_bar.dart';
 import '../views/widgets/form_button.dart';
 import 'package:flutter/material.dart';

@@ -4,7 +4,7 @@
   "startDate": "2025-05-01",
   "endDate": "2025-05-07",
   "timing_description": "식전 30분",
-  "times": [],
+  "times": {},
   "medicines": [
     {
       "medicine_id": "A11AGGGGA5272",

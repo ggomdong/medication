@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/sizes.dart';
 import '../firebase_options.dart';
 import '../router.dart';
+import 'notification/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,10 +22,14 @@ void main() async {
   final preferences = await SharedPreferences.getInstance();
   final repository = SettingsRepository(preferences);
 
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
   runApp(
     ProviderScope(
       overrides: [
         settingsProvider.overrideWith(() => SettingsViewModel(repository)),
+        notificationServiceProvider.overrideWithValue(notificationService),
       ],
       child: const App(),
     ),

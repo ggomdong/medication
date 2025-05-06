@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:medication/models/medi_model.dart';
-import 'package:medication/router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../router.dart';
+import '../models/medi_model.dart';
 import '../models/prescription_model.dart';
 import '../view_models/prescription_view_model.dart';
 import '../views/widgets/form_button.dart';
@@ -11,12 +11,12 @@ import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 
 class PrescriptionScreen extends ConsumerStatefulWidget {
-  final PrescriptionModel? prescription;
+  final PrescriptionModel prescription;
   final bool isModal;
 
   const PrescriptionScreen({
     super.key,
-    this.prescription,
+    required this.prescription,
     this.isModal = false,
   });
 
@@ -25,17 +25,23 @@ class PrescriptionScreen extends ConsumerStatefulWidget {
 }
 
 class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
-  final List<String> _times = [];
+  final Map<String, List<String>> _times = {};
 
   @override
   void initState() {
     super.initState();
     if (widget.isModal) {
       // 수정 → 기존 값만 채운다
-      _times.addAll(widget.prescription!.times);
+      _times.addAll(widget.prescription.times);
     } else {
-      // 신규 → 기본값
-      _times.addAll(["09:00", "13:00", "19:00"]);
+      // 신규 모드 → 기본 시간 3개 + 전체 약 할당
+      final allMeds =
+          widget.prescription.medicines.map((m) => m.medicineId).toList();
+      _times.addAll({
+        "09:00": List.from(allMeds),
+        "13:00": List.from(allMeds),
+        "19:00": List.from(allMeds),
+      });
     }
   }
 
@@ -44,17 +50,147 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       context: context,
       initialTime: TimeOfDay.now(),
     );
+    if (picked == null) return;
+
+    final timeStr =
+        "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
+    final selectedResult = await showDialog<List<String>>(
+      context: context,
+      builder: (_) {
+        final selected = <String>[];
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text("[$timeStr] 복약할 약 선택"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      widget.prescription.medicines.map((m) {
+                        return CheckboxListTile(
+                          title: Text(m.name),
+                          value: selected.contains(m.medicineId),
+                          onChanged: (checked) {
+                            setStateDialog(() {
+                              if (checked == true) {
+                                selected.add(m.medicineId);
+                              } else {
+                                selected.remove(m.medicineId);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(selected),
+                  child: const Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (selectedResult != null && selectedResult.isNotEmpty) {
+      setState(() {
+        _times[timeStr] = selectedResult;
+      });
+    }
+  }
+
+  void _addMedicineToTime(String time) async {
+    final selected = await showDialog<List<String>>(
+      context: context,
+      builder: (_) {
+        final selected = List<String>.from(_times[time] ?? []);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text("[$time] 복약할 약 선택"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      widget.prescription.medicines.map((m) {
+                        return CheckboxListTile(
+                          title: Text(m.name),
+                          value: selected.contains(m.medicineId),
+                          onChanged: (checked) {
+                            setStateDialog(() {
+                              if (checked == true) {
+                                selected.add(m.medicineId);
+                              } else {
+                                selected.remove(m.medicineId);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(selected),
+                  child: const Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (selected != null) {
+      setState(() {
+        if (selected.isEmpty) {
+          _times.remove(time); // 아무것도 선택되지 않으면 시간도 삭제
+        } else {
+          _times[time] = selected; // 선택된 약만 반영
+        }
+      });
+    }
+  }
+
+  void _changeTime(String oldTime) async {
+    final parts = oldTime.split(":");
+    final initial = TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: int.parse(parts[1]),
+    );
+
+    final picked = await showTimePicker(context: context, initialTime: initial);
+
     if (picked != null) {
-      final timeStr =
+      final newTime =
           "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
-      if (!_times.contains(timeStr)) {
-        setState(() => _times.add(timeStr));
+
+      if (newTime != oldTime && !_times.containsKey(newTime)) {
+        setState(() {
+          _times[newTime] = _times.remove(oldTime)!;
+        });
+      } else if (newTime != oldTime) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("이미 존재하는 시간입니다.")));
       }
     }
   }
 
+  void _removeMedicineFromTime(String time, String id) {
+    setState(() {
+      _times[time]!.remove(id);
+      if (_times[time]!.isEmpty) {
+        _times.remove(time);
+      }
+    });
+  }
+
   void _onSubmit() async {
-    if (_times.isEmpty || widget.prescription == null) return;
+    if (_times.isEmpty) return;
 
     showDialog(
       context: context,
@@ -63,7 +199,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
     );
 
     try {
-      final original = widget.prescription!;
+      final original = widget.prescription;
       final updated = PrescriptionModel(
         prescriptionId: original.prescriptionId,
         diagnosis: original.diagnosis,
@@ -75,8 +211,13 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
         uid: original.uid,
         createdAt: original.createdAt,
       );
-      await ref.read(prescriptionProvider.notifier).savePrescription(updated);
 
+      // 처방전 및 복약 스케쥴 저장
+      await ref
+          .read(prescriptionProvider.notifier)
+          .savePrescriptionAndSchedule(updated);
+
+      // 완료 처리
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('처방전이 등록되었습니다.')));
@@ -128,14 +269,13 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   @override
   Widget build(BuildContext context) {
     final p = widget.prescription;
-    if (p == null) {
-      return const Scaffold(body: Center(child: Text("처방전 정보가 없습니다.")));
-    }
+    final sortedEntries =
+        _times.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("처방전 등록"),
+        title: widget.isModal ? const Text("처방전 수정") : const Text("처방전 등록"),
         leading:
             widget.isModal
                 ? Text("")
@@ -199,18 +339,76 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
                 Gaps.v10,
-                Wrap(
-                  spacing: 8,
-                  children:
-                      _times
+                ...sortedEntries.map((entry) {
+                  final time = entry.key;
+                  final medIds = entry.value;
+                  final meds =
+                      medIds
                           .map(
-                            (t) => Chip(
-                              label: Text(t),
-                              onDeleted: () => setState(() => _times.remove(t)),
+                            (id) => widget.prescription.medicines.firstWhere(
+                              (m) => m.medicineId == id,
+                              orElse:
+                                  () => MediModel(
+                                    medicineId: id,
+                                    name: '알 수 없음',
+                                    ingredient: '',
+                                    type: '',
+                                    link: '',
+                                  ),
                             ),
                           )
-                          .toList(),
-                ),
+                          .toList();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () => _changeTime(time),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                time,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () => _addMedicineToTime(time),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed:
+                                () => setState(() => _times.remove(time)),
+                          ),
+                        ],
+                      ),
+                      Wrap(
+                        spacing: 8,
+                        children:
+                            meds
+                                .map(
+                                  (m) => InputChip(
+                                    label: Text(m.name),
+                                    onDeleted:
+                                        () => _removeMedicineFromTime(
+                                          time,
+                                          m.medicineId,
+                                        ),
+                                    onPressed: () => _showMedicineDetail(m),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+                      const Divider(),
+                    ],
+                  );
+                }),
                 Gaps.v10,
                 ElevatedButton.icon(
                   onPressed: () => _addTime(context),

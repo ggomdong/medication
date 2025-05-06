@@ -61,7 +61,7 @@ final routerProvider = Provider((ref) {
         name: RouteName.prescription,
         path: RouteURL.prescription,
         builder: (context, state) {
-          final prescription = state.extra as PrescriptionModel?;
+          final prescription = state.extra as PrescriptionModel;
           return PrescriptionScreen(prescription: prescription);
         },
       ),

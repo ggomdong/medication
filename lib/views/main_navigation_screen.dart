@@ -1,8 +1,3 @@
-import 'package:medication/views/prescription_screen.dart';
-import 'package:medication/views/profile_screen.dart';
-import 'package:medication/views/qr_scan_screen.dart';
-
-import 'calendar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../constants/sizes.dart';
 import '../views/widgets/nav_tab.dart';
 import '../views/home_screen.dart';
+import '../views/profile_screen.dart';
+import '../views/qr_scan_screen.dart';
+import '../views/calendar_screen.dart';
 import '../utils.dart';
 
 class MainNavigationScreen extends ConsumerStatefulWidget {
@@ -40,6 +38,15 @@ class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   }
 
   void _onTap(int index) {
+    if (index == 1) {
+      // QR 화면은 1회성 화면이므로 별도 push로 열고, 하단바 index는 그대로 유지
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const QRScanScreen()),
+      );
+      return;
+    }
+
     context.go("/${_tabs[index]}");
     setState(() {
       _selectedIndex = index;
@@ -56,14 +63,12 @@ class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       body: Stack(
         children: [
           Offstage(offstage: _selectedIndex != 0, child: const HomeScreen()),
-          Offstage(offstage: _selectedIndex != 1, child: QRScanScreen()),
+          // Offstage(offstage: _selectedIndex != 1, child: QRScanScreen()),
           Offstage(offstage: _selectedIndex != 2, child: CalendarScreen()),
-          // 테스트용
-          Offstage(offstage: _selectedIndex != 3, child: PrescriptionScreen()),
-          // Offstage(
-          //   offstage: _selectedIndex != 3,
-          //   child: Center(child: Text("포인트샵")),
-          // ),
+          Offstage(
+            offstage: _selectedIndex != 3,
+            child: Center(child: Text("포인트샵")),
+          ),
           Offstage(offstage: _selectedIndex != 4, child: ProfileScreen()),
         ],
       ),
@@ -79,7 +84,7 @@ class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
             left: Sizes.size12,
             right: Sizes.size12,
             top: Sizes.size24,
-            bottom: Sizes.size52,
+            bottom: Sizes.size20,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
