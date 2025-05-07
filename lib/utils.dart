@@ -9,6 +9,7 @@ bool isDarkMode(WidgetRef ref) => ref.watch(settingsProvider).darkMode;
 List<String> moodEmojiList = ["😀", "😍", "🥳", "😱", "😭", "🤯", "😡"];
 
 const String logo = 'assets/images/logo.png';
+const String appIcon = 'assets/images/app_icon.png';
 
 void showFirebaseErrorSnack(BuildContext context, Object? error) {
   ScaffoldMessenger.of(context).showSnackBar(

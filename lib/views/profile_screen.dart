@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:medication/views/widgets/common_app_bar.dart';
 import '../notification/notification_list.dart';
 import '../repos/authentication_repo.dart';
 import '../view_models/settings_view_model.dart';
@@ -41,7 +42,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
               CupertinoDialogAction(
                 onPressed: () {
                   ref.read(authRepo).signOut();
-                  context.go("/");
+                  context.go(RouteURL.login);
                 },
                 isDestructiveAction: true,
                 child: const Text("예"),
@@ -81,28 +82,20 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       headerSliverBuilder: (context, innerBoxIsScrolled) {
                         return [
                           SliverAppBar(
-                            leading: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: FaIcon(
-                                FontAwesomeIcons.globe,
-                                size: Sizes.size24,
-                              ),
-                            ),
+                            centerTitle: false,
+                            titleSpacing: 0,
+                            toolbarHeight: 70,
+                            title: Image.asset(logo, height: 150),
                             actions: [
-                              IconButton(
-                                onPressed: () {},
-                                icon: const FaIcon(
-                                  FontAwesomeIcons.instagram,
-                                  size: Sizes.size28,
+                              Text(
+                                "🅟 2,000",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  // color: Theme.of(context).primaryColor,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              IconButton(
-                                onPressed: _onGearPressed,
-                                icon: const FaIcon(
-                                  FontAwesomeIcons.bars,
-                                  size: Sizes.size28,
-                                ),
-                              ),
+                              Gaps.h20,
                             ],
                           ),
                           SliverToBoxAdapter(

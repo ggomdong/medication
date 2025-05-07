@@ -72,11 +72,12 @@ class ScheduleRepository {
   Future<void> markAsTaken({
     required String scheduleId,
     required bool isTaken,
-    required DateTime takenAt,
+    required DateTime? takenAt,
   }) async {
     await _db.collection(_collection).doc(scheduleId).update({
       'is_taken': isTaken,
-      'taken_at': takenAt.millisecondsSinceEpoch,
+      'taken_at':
+          isTaken && takenAt != null ? takenAt.millisecondsSinceEpoch : null,
     });
   }
 

@@ -1,3 +1,5 @@
+import 'package:medication/utils.dart';
+
 import '../router.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
@@ -54,7 +56,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       onTap: _onScaffoldTap,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        appBar: CommonAppBar(),
         body: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: Sizes.size64),
@@ -63,14 +64,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 children: [
                   Gaps.v96,
-                  Text(
-                    "",
-                    style: TextStyle(
-                      fontSize: Sizes.size20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
+                  Image.asset(logo, height: 150),
                   Gaps.v32,
                   TextFormField(
                     keyboardType: TextInputType.emailAddress,

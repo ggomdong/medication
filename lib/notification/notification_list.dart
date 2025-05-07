@@ -38,7 +38,7 @@ class NotificationList extends ConsumerWidget {
             return ListTile(
               leading: const Icon(Icons.notifications_active),
               title: Text("병명: $diagnosis"),
-              subtitle: Text("처방전 ID: $prescriptionId"),
+              // subtitle: Text("처방전 ID: $prescriptionId"),
               trailing:
                   scheduledTime != null
                       ? Text("$scheduledTime")

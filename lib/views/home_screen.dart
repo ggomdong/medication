@@ -1,3 +1,5 @@
+import 'package:medication/constants/gaps.dart';
+
 import '../repos/authentication_repo.dart';
 import '../utils.dart';
 import '../view_models/schedule_view_model.dart';
@@ -41,6 +43,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     selectedDate = ValueNotifier(DateTime.now());
     weekStartDate = ValueNotifier(getStartOfWeek(DateTime.now()));
+
+    // 복약 스케쥴 불러오기
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = ref.read(authRepo).user?.uid;
+      if (uid != null) {
+        ref
+            .read(scheduleViewModelProvider.notifier)
+            .loadSchedules(uid, selectedDate.value);
+      }
+    });
   }
 
   @override
@@ -64,43 +76,87 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             children: [
               ValueListenableBuilder<DateTime>(
-                valueListenable: weekStartDate,
-                builder: (context, weekStart, _) {
+                valueListenable: selectedDate,
+                builder: (context, selected, _) {
                   return ValueListenableBuilder<DateTime>(
-                    valueListenable: selectedDate,
-                    builder: (context, selected, _) {
-                      return WeekDateSelector(
-                        weekStartDate: weekStart,
-                        selectedDate: selected,
-                        onDateSelected: (date) {
-                          selectedDate.value = date;
-                          final uid = ref.read(authRepo).user?.uid;
-                          if (uid != null) {
-                            ref
-                                .read(scheduleViewModelProvider.notifier)
-                                .loadSchedules(uid, date);
-                          }
-                        },
-                        onPreviousWeek:
-                            () =>
-                                weekStartDate.value = weekStart.subtract(
-                                  const Duration(days: 7),
-                                ),
-                        onNextWeek:
-                            () =>
-                                weekStartDate.value = weekStart.add(
-                                  const Duration(days: 7),
-                                ),
+                    valueListenable: weekStartDate,
+                    builder: (context, weekStart, _) {
+                      return Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            WeekDateSelector(
+                              weekStartDate: weekStart,
+                              selectedDate: selected,
+                              onDateSelected: (date) {
+                                selectedDate.value = date;
+                                final uid = ref.read(authRepo).user?.uid;
+                                if (uid != null) {
+                                  ref
+                                      .read(scheduleViewModelProvider.notifier)
+                                      .loadSchedules(uid, date);
+                                }
+                              },
+                              onPreviousWeek:
+                                  () =>
+                                      weekStartDate.value = weekStart.subtract(
+                                        const Duration(days: 7),
+                                      ),
+                              onNextWeek:
+                                  () =>
+                                      weekStartDate.value = weekStart.add(
+                                        const Duration(days: 7),
+                                      ),
+                            ),
+                            const Divider(height: 1),
+                            Gaps.v10,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.medication),
+                                  Gaps.h10,
+                                  Text(
+                                    "복약 스케쥴",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // 복약스케쥴도 selectedDate가 바뀌면 리빌드됨
+                            Expanded(
+                              child: DailyMedicationSchedule(date: selected),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   );
                 },
               ),
-              const Divider(height: 1),
-              Expanded(
-                child: DailyMedicationSchedule(date: selectedDate.value),
+              Gaps.v10,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Icon(Icons.list_alt),
+                    Gaps.h10,
+                    Text(
+                      "처방전 목록",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Divider(height: 1),
               Expanded(
                 child: prescriptionStream.when(
                   loading:

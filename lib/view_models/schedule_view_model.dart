@@ -28,22 +28,26 @@ class ScheduleViewModel extends AsyncNotifier<List<ScheduleModel>> {
   }
 
   /// 복약 완료 처리
-  Future<void> markAsTaken(String scheduleId, DateTime takenAt) async {
+  Future<void> markAsTaken({
+    required String scheduleId,
+    required bool isTaken,
+    required DateTime? takenAt,
+  }) async {
     final current = state.valueOrNull;
     if (current == null) return;
 
     // 서버 반영
     await _repo.markAsTaken(
       scheduleId: scheduleId,
-      isTaken: true,
+      isTaken: isTaken,
       takenAt: takenAt,
     );
 
-    // 로컬 상태 동기화
+    // 로컬 상태 반영
     state = AsyncValue.data([
       for (final s in current)
         if (s.scheduleId == scheduleId)
-          s.copyWith(isTaken: true, takenAt: takenAt.millisecondsSinceEpoch)
+          s.copyWith(isTaken: isTaken, takenAt: takenAt?.millisecondsSinceEpoch)
         else
           s,
     ]);
