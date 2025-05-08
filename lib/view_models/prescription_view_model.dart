@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../utils.dart';
 import '../notification/notification_service.dart';
 import '../models/schedule_model.dart';
 import '../models/prescription_model.dart';
@@ -17,15 +18,21 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
   }
 
   Future<void> savePrescriptionAndSchedule(PrescriptionModel model) async {
+    // 0. 알람 설정 유도 (미리 유도)
+    final confirm = await confirmExactAlarmPermission();
+    if (!confirm) {
+      throw Exception("정확한 알람 권한이 없어 저장을 중단합니다.");
+    }
+
+    // 1. 처방 저장
+    final id = await _repo.savePrescription(model);
+    final updated = model.copyWith(prescriptionId: id);
+
+    // 2. 복약스케쥴 생성 + 저장
+    final schedules = _generateSchedules(updated);
+    final insertedSchedules = await _scheduleRepo.bulkInsert(schedules);
+
     try {
-      // 1. 처방 저장
-      final id = await _repo.savePrescription(model);
-      final updated = model.copyWith(prescriptionId: id);
-
-      // 2. 복약스케쥴 생성 + 저장
-      final schedules = _generateSchedules(updated);
-      final insertedSchedules = await _scheduleRepo.bulkInsert(schedules);
-
       // 3. 알림 예약
       final notificationService = ref.read(notificationServiceProvider);
       for (final s in insertedSchedules) {
@@ -33,8 +40,9 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
         print("⏰ 알림 예약됨: ${s.date} ${s.time} for ${s.prescriptionId}");
       }
     } catch (e) {
-      // 3. 중간 실패 시 처방 삭제 (보상)
-      await _repo.deletePrescription(model.prescriptionId);
+      // 4. 중간 실패 시 처방 삭제 (보상)
+      await _scheduleRepo.deleteByPrescription(updated.prescriptionId);
+      await _repo.deletePrescription(updated.prescriptionId);
       rethrow; // 에러는 그대로 throw
     }
   }

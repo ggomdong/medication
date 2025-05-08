@@ -32,20 +32,40 @@ class NotificationService {
     String diagnosis,
   ) async {
     // 알림 테스트용(즉시 알림 발생)
-    await _flutterLocalNotificationsPlugin.show(
-      999,
-      '테스트 알림',
-      '지금 알림이 울리면 정상입니다!',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'medication_channel',
-          '복약 알림',
-          channelDescription: '약 복용 시간 알림입니다.',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-      ),
-    );
+    // await _flutterLocalNotificationsPlugin.show(
+    //   999,
+    //   '테스트 알림',
+    //   '지금 알림이 울리면 정상입니다!',
+    //   const NotificationDetails(
+    //     android: AndroidNotificationDetails(
+    //       'medication_channel',
+    //       '복약 알림',
+    //       channelDescription: '약 복용 시간 알림입니다.',
+    //       importance: Importance.max,
+    //       priority: Priority.high,
+    //     ),
+    //   ),
+    // );
+
+    // final localDateTime2 = DateTime.now().add(Duration(seconds: 10));
+    // final zonedTime2 = tz.TZDateTime.from(localDateTime2, tz.local);
+
+    // await _flutterLocalNotificationsPlugin.zonedSchedule(
+    //   1001,
+    //   '테스트 알림',
+    //   '이 알림이 10초 뒤에 울리면 zonedSchedule 정상',
+    //   zonedTime2,
+    //   const NotificationDetails(
+    //     android: AndroidNotificationDetails(
+    //       'medication_channel',
+    //       '복약 알림',
+    //       channelDescription: '약 복용 시간 알림입니다.',
+    //       importance: Importance.max,
+    //       priority: Priority.high,
+    //     ),
+    //   ),
+    //   androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    // );
 
     // 1. 문자열 기반으로 로컬 시간 생성
     // 1. 문자열 기반 시각 → 로컬 DateTime 생성

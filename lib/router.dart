@@ -30,9 +30,12 @@ class RouteName {
   static const settings = "settings";
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 final routerProvider = Provider((ref) {
   return GoRouter(
     initialLocation: "/splash",
+    navigatorKey: navigatorKey,
 
     routes: [
       GoRoute(

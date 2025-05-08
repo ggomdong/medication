@@ -18,7 +18,7 @@ class CommonAppBar extends ConsumerWidget implements PreferredSizeWidget {
       child: AppBar(
         centerTitle: false,
         titleSpacing: 0,
-        title: Image.asset(logo, height: 150),
+        title: Image.asset(isDark ? logoDarkmode : logo, height: 150),
         actions: [
           Text(
             "🅟 2,000",

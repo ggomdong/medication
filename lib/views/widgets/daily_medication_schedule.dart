@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
-import 'package:medication/constants/gaps.dart';
-import 'package:medication/models/prescription_model.dart';
-import 'package:medication/models/schedule_model.dart';
-import 'package:medication/models/medi_model.dart';
-import 'package:medication/utils.dart';
-import 'package:medication/view_models/prescription_view_model.dart';
-import 'package:medication/view_models/schedule_view_model.dart';
+import '../../constants/gaps.dart';
+import '../../models/prescription_model.dart';
+import '../../models/schedule_model.dart';
+import '../../utils.dart';
+import '../../view_models/prescription_view_model.dart';
+import '../../view_models/schedule_view_model.dart';
 
 class DailyMedicationSchedule extends ConsumerWidget {
   final DateTime date;

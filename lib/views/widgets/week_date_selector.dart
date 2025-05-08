@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:medication/constants/gaps.dart';
-import 'package:medication/utils.dart';
+import '../../constants/gaps.dart';
 
 class WeekDateSelector extends StatelessWidget {
   final DateTime weekStartDate;

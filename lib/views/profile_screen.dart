@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:medication/views/widgets/common_app_bar.dart';
 import '../notification/notification_list.dart';
 import '../repos/authentication_repo.dart';
 import '../view_models/settings_view_model.dart';
@@ -23,10 +21,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class ProfileScreenState extends ConsumerState<ProfileScreen> {
-  void _onGearPressed() {
-    context.go(RouteURL.settings);
-  }
-
   void _onShowModal(BuildContext context, WidgetRef ref) {
     showCupertinoDialog(
       context: context,
@@ -85,7 +79,10 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                             centerTitle: false,
                             titleSpacing: 0,
                             toolbarHeight: 70,
-                            title: Image.asset(logo, height: 150),
+                            title: Image.asset(
+                              isDark ? logoDarkmode : logo,
+                              height: 150,
+                            ),
                             actions: [
                               Text(
                                 "🅟 2,000",
@@ -202,12 +199,13 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      CustomButton(text: "Settings"),
+                                      GestureDetector(
+                                        onTap: openExactAlarmSettings,
+                                        child: CustomButton(text: "알람 권한 설정"),
+                                      ),
                                       GestureDetector(
                                         onTap: _removeAllAlarms,
-                                        child: CustomButton(
-                                          text: "Remove alarms",
-                                        ),
+                                        child: CustomButton(text: "알람 삭제"),
                                       ),
                                     ],
                                   ),

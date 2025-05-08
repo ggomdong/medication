@@ -142,7 +142,10 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
-        padding: const EdgeInsets.all(Sizes.size16),
+        padding: const EdgeInsets.symmetric(
+          vertical: Sizes.size4,
+          horizontal: Sizes.size16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -269,9 +272,7 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
                           ),
                         ],
                       ),
-                      Gaps.v8,
-                      const Divider(height: 1),
-                      Gaps.v8,
+                      Gaps.v4,
                     ],
                   );
                 }),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../notification/notification_service.dart'; // NotificationServiceProvider import 필요
+import '../notification/notification_service.dart';
+import 'package:intl/intl.dart';
 
 class NotificationList extends ConsumerWidget {
   const NotificationList({super.key});
@@ -11,7 +12,7 @@ class NotificationList extends ConsumerWidget {
     final notificationService = ref.watch(notificationServiceProvider);
 
     return FutureBuilder<List<PendingNotificationRequest>>(
-      future: notificationService.pendingNotificationRequests(), // ✅ 수정된 부분
+      future: notificationService.pendingNotificationRequests(),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
@@ -28,6 +29,7 @@ class NotificationList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final req = requests[index];
             final payload = req.payload ?? "";
+            print(payload);
             final parts = payload.split('|');
 
             final diagnosis = parts.isNotEmpty ? parts[0] : "-";
@@ -41,7 +43,11 @@ class NotificationList extends ConsumerWidget {
               // subtitle: Text("처방전 ID: $prescriptionId"),
               trailing:
                   scheduledTime != null
-                      ? Text("$scheduledTime")
+                      ? Text(
+                        DateFormat(
+                          'yyyy년 MM월 dd일 HH:mm',
+                        ).format(scheduledTime.toLocal()),
+                      )
                       : const Text("-"),
             );
           },

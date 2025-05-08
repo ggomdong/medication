@@ -1,15 +1,16 @@
+import '../notification/notification_permission.dart';
+import '../notification/notification_service.dart';
 import '../repos/settings_repo.dart';
 import '../view_models/settings_view_model.dart';
+import '../constants/sizes.dart';
+import '../firebase_options.dart';
+import '../router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../constants/sizes.dart';
-import '../firebase_options.dart';
-import '../router.dart';
-import 'notification/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,9 @@ void main() async {
 
   final notificationService = NotificationService();
   await notificationService.initialize();
+
+  // 알림 권한 확인 및 설정 유도
+  final granted = await requestNotificationPermission();
 
   runApp(
     ProviderScope(

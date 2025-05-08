@@ -1,9 +1,7 @@
-import 'package:medication/utils.dart';
-
+import '../utils.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 import '../view_models/sign_up_view_model.dart';
-import '../views/widgets/common_app_bar.dart';
 import '../views/widgets/form_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

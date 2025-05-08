@@ -1,11 +1,10 @@
-import 'package:medication/constants/gaps.dart';
-
 import '../repos/authentication_repo.dart';
 import '../utils.dart';
 import '../view_models/schedule_view_model.dart';
 import '../views/widgets/daily_medication_schedule.dart';
 import '../views/widgets/week_date_selector.dart';
 import '../constants/sizes.dart';
+import '../constants/gaps.dart';
 import '../view_models/prescription_view_model.dart';
 import '../views/widgets/common_app_bar.dart';
 import '../views/widgets/prescription_card.dart';
@@ -167,24 +166,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       return const Center(child: Text("등록된 처방전이 없어요."));
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(Sizes.size16),
-                      itemCount: prescriptionList.length,
-                      itemBuilder: (context, index) {
-                        final prescription = prescriptionList[index];
-                        final start = DateFormat(
-                          "yyyy.MM.dd",
-                        ).format(prescription.startDate);
-                        final end = DateFormat(
-                          "yyyy.MM.dd",
-                        ).format(prescription.endDate);
-                        final dateText = "$start ~ $end";
+                    // return ListView.builder(
+                    //   padding: const EdgeInsets.all(Sizes.size16),
+                    //   itemCount: prescriptionList.length,
+                    //   itemBuilder: (context, index) {
+                    //     final prescription = prescriptionList[index];
+                    //     final start = DateFormat(
+                    //       "yyyy.MM.dd",
+                    //     ).format(prescription.startDate);
+                    //     final end = DateFormat(
+                    //       "yyyy.MM.dd",
+                    //     ).format(prescription.endDate);
+                    //     final dateText = "$start ~ $end";
 
-                        return PrescriptionCard(
-                          date: dateText,
-                          prescription: prescription,
-                        );
-                      },
+                    //     return PrescriptionCard(
+                    //       date: dateText,
+                    //       prescription: prescription,
+                    //     );
+                    //   },
+                    // );
+                    return SizedBox(
+                      height: 240, // 카드 높이에 맞게 조절
+                      child: PageView.builder(
+                        controller: PageController(viewportFraction: 0.85),
+                        itemCount: prescriptionList.length,
+                        itemBuilder: (context, index) {
+                          final prescription = prescriptionList[index];
+                          final start = DateFormat(
+                            "yyyy.MM.dd",
+                          ).format(prescription.startDate);
+                          final end = DateFormat(
+                            "yyyy.MM.dd",
+                          ).format(prescription.endDate);
+                          final dateText = "$start ~ $end";
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
+                            child: PrescriptionCard(
+                              date: dateText,
+                              prescription: prescription,
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
