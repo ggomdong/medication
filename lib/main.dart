@@ -27,7 +27,7 @@ void main() async {
   await notificationService.initialize();
 
   // 알림 권한 확인 및 설정 유도
-  final granted = await requestNotificationPermission();
+  await requestNotificationPermission();
 
   runApp(
     ProviderScope(

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../repos/authentication_repo.dart';
 import '../models/schedule_model.dart';
 import '../repos/schedule_repo.dart';
 
@@ -58,3 +59,10 @@ final scheduleViewModelProvider =
     AsyncNotifierProvider<ScheduleViewModel, List<ScheduleModel>>(
       ScheduleViewModel.new,
     );
+
+final scheduleStreamProvider = StreamProvider.autoDispose((ref) {
+  final repo = ref.read(scheduleRepositoryProvider);
+  final uid = ref.read(authRepo).user?.uid;
+  if (uid == null) return const Stream.empty();
+  return repo.watchSchedules(uid);
+});

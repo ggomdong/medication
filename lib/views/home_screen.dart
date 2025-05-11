@@ -111,7 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             Gaps.v10,
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                                horizontal: 6,
                               ),
                               child: Row(
                                 children: [
@@ -141,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               Gaps.v10,
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Row(
                   children: [
                     Icon(Icons.list_alt),
@@ -166,25 +166,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       return const Center(child: Text("등록된 처방전이 없어요."));
                     }
 
-                    // return ListView.builder(
-                    //   padding: const EdgeInsets.all(Sizes.size16),
-                    //   itemCount: prescriptionList.length,
-                    //   itemBuilder: (context, index) {
-                    //     final prescription = prescriptionList[index];
-                    //     final start = DateFormat(
-                    //       "yyyy.MM.dd",
-                    //     ).format(prescription.startDate);
-                    //     final end = DateFormat(
-                    //       "yyyy.MM.dd",
-                    //     ).format(prescription.endDate);
-                    //     final dateText = "$start ~ $end";
-
-                    //     return PrescriptionCard(
-                    //       date: dateText,
-                    //       prescription: prescription,
-                    //     );
-                    //   },
-                    // );
                     return SizedBox(
                       height: 240, // 카드 높이에 맞게 조절
                       child: PageView.builder(

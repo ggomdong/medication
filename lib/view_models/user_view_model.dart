@@ -42,9 +42,21 @@ class UsersViewModel extends AsyncNotifier<UserProfileModel> {
       hasAvatar: false,
       followers: [],
       followerCount: 0,
+      point: 0,
     );
     await _userRepository.createProfile(profile);
     state = AsyncValue.data(profile);
+  }
+
+  Future<void> updatePoint(int delta) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    final newPoint = (current.point + delta).clamp(0, 999999); // 음수 방지
+
+    await _userRepository.updatePoint(current.uid, newPoint);
+
+    state = AsyncValue.data(current.copyWith(point: newPoint));
   }
 }
 

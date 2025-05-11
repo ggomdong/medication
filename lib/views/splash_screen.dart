@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:medication/router.dart';
-import 'package:medication/utils.dart';
+import '../router.dart';
+import '../utils.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

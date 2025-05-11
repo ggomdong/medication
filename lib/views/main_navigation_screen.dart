@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import '../views/shop_screen.dart';
 import '../constants/sizes.dart';
 import '../views/widgets/nav_tab.dart';
 import '../views/home_screen.dart';
@@ -65,10 +66,7 @@ class MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
           Offstage(offstage: _selectedIndex != 0, child: const HomeScreen()),
           // Offstage(offstage: _selectedIndex != 1, child: QRScanScreen()),
           Offstage(offstage: _selectedIndex != 2, child: CalendarScreen()),
-          Offstage(
-            offstage: _selectedIndex != 3,
-            child: Center(child: Text("포인트샵")),
-          ),
+          Offstage(offstage: _selectedIndex != 3, child: ShopScreen()),
           Offstage(offstage: _selectedIndex != 4, child: ProfileScreen()),
         ],
       ),

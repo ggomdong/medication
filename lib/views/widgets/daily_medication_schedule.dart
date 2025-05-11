@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../views/widgets/survey_dialog.dart';
+import '../../view_models/user_view_model.dart';
 import '../../constants/gaps.dart';
-import '../../models/prescription_model.dart';
 import '../../models/schedule_model.dart';
 import '../../utils.dart';
 import '../../view_models/prescription_view_model.dart';
@@ -10,6 +12,25 @@ import '../../view_models/schedule_view_model.dart';
 class DailyMedicationSchedule extends ConsumerWidget {
   final DateTime date;
   const DailyMedicationSchedule({super.key, required this.date});
+
+  // 복약시간 도래 여부 확인
+  bool isEligibleForTaken({
+    required DateTime scheduledDate,
+    required String scheduledTimeStr,
+  }) {
+    final now = DateTime.now();
+
+    final parts = scheduledTimeStr.split(":");
+    final scheduled = DateTime(
+      scheduledDate.year,
+      scheduledDate.month,
+      scheduledDate.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+
+    return now.isAfter(scheduled);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,6 +48,10 @@ class DailyMedicationSchedule extends ConsumerWidget {
       return const Center(child: Text("오늘 복약 예정이 없습니다."));
     }
 
+    final Map<String, String> idToDiagnosis = {
+      for (final p in prescriptions) p.prescriptionId: p.diagnosis,
+    };
+
     final sorted = [...schedules]..sort((a, b) => a.time.compareTo(b.time));
 
     return SingleChildScrollView(
@@ -35,43 +60,88 @@ class DailyMedicationSchedule extends ConsumerWidget {
       child: Row(
         children:
             sorted.map((sched) {
-              final diagnosis = _findDiagnosis(
-                sched.medicineIds,
-                prescriptions,
-              );
+              final diagnosis = idToDiagnosis[sched.prescriptionId] ?? '정보 없음';
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: _PillScheduleItem(
                   schedule: sched,
                   diagnosis: diagnosis ?? '정보 없음',
-                  onToggle: () {
+                  onToggle: () async {
                     final newTaken = !sched.isTaken;
-                    ref
+                    DateTime? takenAt;
+
+                    if (newTaken) {
+                      // 1. 복약시 복약시간 도래 여부 체크
+                      final isAllowed = isEligibleForTaken(
+                        scheduledDate: sched.date,
+                        scheduledTimeStr: sched.time,
+                      );
+
+                      if (!isAllowed) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("아직 복약 시간이 되지 않았습니다."),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return; // ❗조기 종료
+                      }
+
+                      final parts = sched.time.split(":");
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay(
+                          hour: int.parse(parts[0]),
+                          minute: int.parse(parts[1]),
+                        ),
+                      );
+
+                      if (picked == null) return; // 사용자가 취소한 경우
+
+                      takenAt = DateTime(
+                        sched.date.year,
+                        sched.date.month,
+                        sched.date.day,
+                        picked.hour,
+                        picked.minute,
+                      );
+                    }
+
+                    // 복약기록 입력
+                    await ref
                         .read(scheduleViewModelProvider.notifier)
                         .markAsTaken(
                           scheduleId: sched.scheduleId,
                           isTaken: newTaken,
-                          takenAt: newTaken ? DateTime.now() : null,
+                          takenAt: takenAt,
                         );
+
+                    // 포인트 적립 / 차감 처리
+                    await ref
+                        .read(usersProvider.notifier)
+                        .updatePoint(newTaken ? 10 : -10);
+
+                    // ✅ 설문조사 팝업 위치 (복약 완료한 경우에만)
+                    if (newTaken) {
+                      await showSurveyDialog(context);
+                    }
+
+                    final messenger = ScaffoldMessenger.of(context);
+                    final message =
+                        newTaken ? "포인트 10점이 적립되었습니다." : "포인트 10점이 차감되었습니다.";
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
                   },
                 ),
               );
             }).toList(),
       ),
     );
-  }
-
-  String? _findDiagnosis(
-    List<String> medicineIds,
-    List<PrescriptionModel> prescriptions,
-  ) {
-    for (final p in prescriptions) {
-      if (p.medicines.any((m) => medicineIds.contains(m.medicineId))) {
-        return p.diagnosis;
-      }
-    }
-    return null;
   }
 }
 
@@ -86,10 +156,93 @@ class _PillScheduleItem extends StatelessWidget {
     required this.onToggle,
   });
 
+  Color getTakenColor({
+    required DateTime scheduledDate, // yyyy-MM-dd
+    required String scheduledTimeStr, // "HH:mm"
+    required int? takenAtMillis,
+  }) {
+    final now = DateTime.now();
+
+    // 예정 시간: 날짜 + 시간 조합
+    final parts = scheduledTimeStr.split(":");
+    final scheduled = DateTime(
+      scheduledDate.year,
+      scheduledDate.month,
+      scheduledDate.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+
+    // ⏳ 복약 안함
+    if (takenAtMillis == null) {
+      final diff = now.difference(scheduled).inMinutes;
+
+      if (diff < 0) {
+        return Colors.black; // 아직 복약 전
+      } else if (diff <= 30) {
+        return Colors.black; // 허용 범위 내
+      } else {
+        return Colors.red; // 복약 시간이 지났고 아직 안 먹음
+      }
+    }
+
+    // ✅ 복약 완료
+    final taken = DateTime.fromMillisecondsSinceEpoch(takenAtMillis);
+    final diffMinutes = taken.difference(scheduled).inMinutes.abs();
+
+    if (diffMinutes <= 30) return Colors.green;
+    if (diffMinutes <= 60) return Colors.orange;
+    return Colors.red;
+  }
+
+  String? getTakenEmoji(String scheduledTimeStr, int? takenAtMillis) {
+    final now = DateTime.now();
+
+    // 예정 시간 파싱 ("HH:mm" → DateTime)
+    final parts = scheduledTimeStr.split(":");
+    final scheduled = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+
+    // 아직 복약 전
+    if (takenAtMillis == null) {
+      final diff = now.difference(scheduled).inMinutes;
+      if (diff < 0) return null; // ✅ 이미지 유지 (기본 상태)
+      if (diff <= 30) return null; // 아직은 기다리는 중 (기본 상태)
+      return "😡"; // 복약 놓침
+    }
+
+    // 복약 완료 → 시간 차이로 이모지 결정
+    final taken = DateTime.fromMillisecondsSinceEpoch(takenAtMillis);
+    final diffMinutes = taken.difference(scheduled).inMinutes.abs();
+
+    if (diffMinutes <= 30) return "😊";
+    if (diffMinutes <= 60) return "😐";
+    return "😞";
+  }
+
   @override
   Widget build(BuildContext context) {
     final isTaken = schedule.isTaken;
-    final formattedTime = schedule.time;
+    final scheduledTime = schedule.time;
+    final takenAt = schedule.takenAt;
+    final takenTimeStr =
+        takenAt != null
+            ? DateFormat(
+              'HH:mm',
+            ).format(DateTime.fromMillisecondsSinceEpoch(takenAt))
+            : "미복약";
+
+    final pillColor = getTakenColor(
+      scheduledDate: schedule.date,
+      scheduledTimeStr: schedule.time,
+      takenAtMillis: schedule.takenAt,
+    );
+    // final pillEmoji = getTakenEmoji(schedule.time, schedule.takenAt);
 
     return Column(
       children: [
@@ -99,24 +252,26 @@ class _PillScheduleItem extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isTaken ? Colors.green.shade100 : Colors.white,
-              border: Border.all(
-                color: isTaken ? Colors.green : Colors.grey,
-                width: 2,
-              ),
+              color: isTaken ? pillColor : Colors.white,
+              border: Border.all(color: Colors.grey, width: 2),
             ),
             padding: const EdgeInsets.all(10),
             child: Image.asset(
               appIcon,
               width: 64,
               height: 64,
-              color: isTaken ? Colors.green : null,
+              color: isTaken ? pillColor : null,
               colorBlendMode: BlendMode.modulate,
             ),
           ),
         ),
         Gaps.v8,
-        Text(formattedTime, style: Theme.of(context).textTheme.titleSmall),
+        Text(
+          '$scheduledTime / $takenTimeStr',
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(color: pillColor),
+        ),
         Text(
           diagnosis,
           style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -125,338 +280,3 @@ class _PillScheduleItem extends StatelessWidget {
     );
   }
 }
-
-
-
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:intl/intl.dart';
-// import 'package:medication/constants/gaps.dart';
-// import 'package:medication/models/prescription_model.dart';
-// import 'package:medication/models/medi_model.dart';
-// import 'package:medication/view_models/prescription_view_model.dart';
-
-// class DailyMedicationSchedule extends ConsumerWidget {
-//   final DateTime date;
-//   const DailyMedicationSchedule({super.key, required this.date});
-
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final prescriptionState = ref.watch(prescriptionStreamProvider);
-
-//     if (prescriptionState.isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-
-//     final prescriptions = prescriptionState.asData?.value ?? [];
-//     final todayStr = DateFormat('yyyy-MM-dd').format(date);
-
-//     final List<_ScheduleCardData> allCards = [];
-
-//     // 1. 처방전 순회
-//     for (final p in prescriptions) {
-//       if (date.isBefore(p.startDate) || date.isAfter(p.endDate)) continue;
-
-//       // 2. times의 키(시간) 순회
-//       final sortedTimes = _sortTimes(p.times.keys);
-
-//       for (final timeStr in sortedTimes) {
-//         final ids = p.times[timeStr] ?? [];
-
-//         final meds =
-//             (p.medicines as List<MediModel>)
-//                 .where((m) => ids.contains(m.medicineId))
-//                 .toList();
-
-//         if (meds.isEmpty) continue;
-
-//         allCards.add(
-//           _ScheduleCardData(
-//             timeStr: timeStr,
-//             diagnosis: p.diagnosis,
-//             medicines: meds,
-//           ),
-//         );
-//       }
-//     }
-
-//     if (allCards.isEmpty) {
-//       return const Center(child: Text("오늘 복약 예정이 없어요."));
-//     }
-
-//     // 3. 시간순 정렬
-//     allCards.sort((a, b) => a.timeStr.compareTo(b.timeStr));
-
-//     return ListView.builder(
-//       itemCount: allCards.length,
-//       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-//       itemBuilder: (context, index) {
-//         final data = allCards[index];
-//         return _buildCard(context, data);
-//       },
-//     );
-//   }
-
-//   List<String> _sortTimes(Iterable<String> timeStrs) {
-//     final times = timeStrs.toList();
-//     times.sort((a, b) {
-//       final t1 = DateFormat("HH:mm").parse(a);
-//       final t2 = DateFormat("HH:mm").parse(b);
-//       return t1.compareTo(t2);
-//     });
-//     return times;
-//   }
-
-//   Widget _buildCard(BuildContext context, _ScheduleCardData data) {
-//     return Card(
-//       margin: const EdgeInsets.symmetric(vertical: 8),
-//       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//       elevation: 3,
-//       child: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // 시간 및 병명
-//             Row(
-//               children: [
-//                 Text(
-//                   data.timeStr,
-//                   style: Theme.of(context).textTheme.titleMedium,
-//                 ),
-//                 Gaps.h10,
-//                 Text(
-//                   data.diagnosis,
-//                   style: const TextStyle(color: Colors.grey),
-//                 ),
-//                 Align(
-//                   alignment: Alignment.centerRight,
-//                   child: ElevatedButton(
-//                     onPressed: () {
-//                       // 복약 완료 처리 로직 추후 연동
-//                       ScaffoldMessenger.of(context).showSnackBar(
-//                         SnackBar(content: Text("${data.timeStr} 복약 완료!")),
-//                       );
-//                     },
-//                     child: const Text("복약 완료"),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//             // 약 목록 (Chip)
-//             Wrap(
-//               spacing: 2,
-//               runSpacing: 2,
-//               children:
-//                   data.medicines.map((m) => Chip(label: Text(m.name))).toList(),
-//             ),
-
-//             // 복약 완료 버튼 (추후 기능 확장 가능)
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// // 내부 전용 데이터 클래스
-// class _ScheduleCardData {
-//   final String timeStr;
-//   final String diagnosis;
-//   final List<MediModel> medicines;
-
-//   _ScheduleCardData({
-//     required this.timeStr,
-//     required this.diagnosis,
-//     required this.medicines,
-//   });
-// }
-
-
-
-
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:medication/constants/gaps.dart';
-// import 'package:medication/models/prescription_model.dart';
-// import 'package:medication/view_models/prescription_view_model.dart';
-// import 'package:medication/view_models/schedule_view_model.dart';
-
-// class DailyMedicationSchedule extends ConsumerWidget {
-//   final DateTime date;
-//   const DailyMedicationSchedule({super.key, required this.date});
-
-//   String getMedicineNames(
-//     List<String> medicineIds,
-//     List<PrescriptionModel> prescriptions,
-//   ) {
-//     final names = <String>[];
-
-//     for (final pid in medicineIds) {
-//       for (final p in prescriptions) {
-//         for (final medi in p.medicines) {
-//           if (medi.medicineId == pid) {
-//             names.add(medi.name);
-//           }
-//         }
-//       }
-//     }
-
-//     return names.join(', ');
-//   }
-
-//   String? findDiagnosis(
-//     String medicineId,
-//     List<PrescriptionModel> prescriptions,
-//   ) {
-//     for (final p in prescriptions) {
-//       if (p.medicines.any((m) => m.medicineId == medicineId)) {
-//         return p.diagnosis; // 또는 p.name, p.title 등
-//       }
-//     }
-//     return null;
-//   }
-
-//   List<Widget> getMedicineChips(
-//     List<String> ids,
-//     List<PrescriptionModel> prescriptions,
-//   ) {
-//     final chips = <Widget>[];
-//     for (final pid in ids) {
-//       for (final p in prescriptions) {
-//         for (final medi in p.medicines) {
-//           if (medi.medicineId == pid) {
-//             chips.add(
-//               Chip(
-//                 label: SizedBox(
-//                   width: 50,
-//                   height: 20,
-//                   child: Center(child: Text(medi.name)),
-//                 ),
-//               ),
-//             );
-//           }
-//         }
-//       }
-//     }
-//     return chips;
-//   }
-
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final scheduleState = ref.watch(scheduleViewModelProvider);
-//     final prescriptionState = ref.watch(prescriptionStreamProvider);
-
-//     if (scheduleState.isLoading || prescriptionState.isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-
-//     final schedules = scheduleState.asData?.value ?? [];
-//     final prescriptions = prescriptionState.asData?.value ?? [];
-
-//     if (schedules.isEmpty) {
-//       return const Center(child: Text("복약 예정이 없습니다."));
-//     }
-
-//     final sorted = [...schedules]..sort((a, b) => a.time.compareTo(b.time));
-
-//     return ListView.builder(
-//       scrollDirection: Axis.horizontal,
-//       itemCount: sorted.length,
-//       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-//       itemBuilder: (context, index) {
-//         final sched = sorted[index];
-//         final medicineText = getMedicineNames(sched.medicineIds, prescriptions);
-
-//         return Card(
-//           elevation: 3,
-//           margin: const EdgeInsets.symmetric(horizontal: 8),
-//           shape: RoundedRectangleBorder(
-//             borderRadius: BorderRadius.circular(16),
-//           ),
-//           child: Container(
-//             width: 260,
-//             height: 100,
-//             padding: const EdgeInsets.all(8),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 // 시간 + 병명
-//                 Row(
-//                   children: [
-//                     Text(
-//                       sched.time,
-//                       style: Theme.of(context).textTheme.titleMedium,
-//                     ),
-//                     const SizedBox(height: 4),
-//                     Text(
-//                       "병명: ${sched.isTaken ?? '정보 없음'}",
-//                       style: const TextStyle(color: Colors.grey),
-//                     ),
-//                     Gaps.h4,
-//                     // 복약 완료 버튼 또는 텍스트
-//                     sched.isTaken
-//                         ? const Text(
-//                           "복약 완료",
-//                           style: TextStyle(color: Colors.green),
-//                         )
-//                         : Align(
-//                           alignment: Alignment.centerRight,
-//                           child: ElevatedButton(
-//                             style: ElevatedButton.styleFrom(
-//                               minimumSize: Size(30, 20),
-//                             ),
-//                             onPressed: () {
-//                               ref
-//                                   .read(scheduleViewModelProvider.notifier)
-//                                   .markAsTaken(
-//                                     sched.scheduleId,
-//                                     DateTime.now(),
-//                                   );
-//                             },
-//                             child: const Text("복약 완료"),
-//                           ),
-//                         ),
-//                   ],
-//                 ),
-//                 // 약 목록 (Chip)
-//                 Wrap(
-//                   spacing: 8,
-//                   runSpacing: 8,
-//                   children: getMedicineChips(sched.medicineIds, prescriptions),
-//                 ),
-//                 const SizedBox(height: 12),
-//               ],
-//             ),
-//           ),
-//         );
-
-
-
-        //         // return ListTile(
-        //         //   leading: Icon(
-        //         //     sched.isTaken ? Icons.check_circle : Icons.access_time,
-        //         //     color: sched.isTaken ? Colors.green : Colors.orange,
-        //         //   ),
-        //         //   title: Text("${sched.time} 복약"),
-        //         //   subtitle: Text(medicineText),
-        //         //   trailing:
-        //         //       sched.isTaken
-        //         //           ? const Text("복약 완료", style: TextStyle(color: Colors.green))
-        //         //           : ElevatedButton(
-        //         //             onPressed: () {
-        //         //               ref
-        //         //                   .read(scheduleViewModelProvider.notifier)
-        //         //                   .markAsTaken(sched.scheduleId, DateTime.now());
-        //         //             },
-        //         //             child: const Text("복약 완료"),
-        //         //           ),
-        //         // );
-
-
-//       },
-//     );
-//   }
-// }

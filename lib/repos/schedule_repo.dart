@@ -115,6 +115,22 @@ class ScheduleRepository {
     final d = DateTime(date.year, date.month, date.day);
     return d.toIso8601String().split('T').first;
   }
+
+  Stream<List<ScheduleModel>> watchSchedules(String uid) {
+    return _db
+        .collection(_collection)
+        .where("uid", isEqualTo: uid)
+        .orderBy("date", descending: false)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map(
+                    (doc) => ScheduleModel.fromJson(doc.data(), docId: doc.id),
+                  )
+                  .toList(),
+        );
+  }
 }
 
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {

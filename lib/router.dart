@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../views/chat_detail_screen.dart';
+import '../views/edit_medication_info_screen.dart';
 import '../models/prescription_model.dart';
 import '../views/prescription_screen.dart';
 import '../views/splash_screen.dart';
@@ -15,8 +17,8 @@ class RouteURL {
   static const home = "/home";
   static const qr = "/qr";
   static const prescription = "/prescription";
-  static const profile = "/profile";
-  static const settings = "/settings";
+  static const info = "/info";
+  static const chat = "/chat";
 }
 
 class RouteName {
@@ -26,8 +28,8 @@ class RouteName {
   static const home = "home";
   static const qr = "qr";
   static const prescription = "prescription";
-  static const profile = "profile";
-  static const settings = "settings";
+  static const info = "info";
+  static const chat = "chat";
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -67,6 +69,16 @@ final routerProvider = Provider((ref) {
           final prescription = state.extra as PrescriptionModel;
           return PrescriptionScreen(prescription: prescription);
         },
+      ),
+      GoRoute(
+        name: RouteName.info,
+        path: RouteURL.info,
+        builder: (context, state) => const EditMedicationInfoScreen(),
+      ),
+      GoRoute(
+        name: RouteName.chat,
+        path: RouteURL.chat,
+        builder: (context, state) => const ChatDetailScreen(),
       ),
     ],
   );

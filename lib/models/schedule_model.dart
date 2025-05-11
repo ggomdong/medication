@@ -66,7 +66,7 @@ class ScheduleModel {
       time: time ?? this.time,
       medicineIds: medicineIds ?? this.medicineIds,
       isTaken: isTaken ?? this.isTaken,
-      takenAt: takenAt ?? this.takenAt,
+      takenAt: takenAt,
       createdAt: createdAt ?? this.createdAt,
     );
   }

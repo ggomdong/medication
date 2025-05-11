@@ -7,6 +7,7 @@ class UserProfileModel {
   final bool hasAvatar;
   final List<String> followers;
   final int followerCount;
+  final int point;
 
   UserProfileModel({
     required this.uid,
@@ -17,6 +18,7 @@ class UserProfileModel {
     required this.hasAvatar,
     required this.followers,
     required this.followerCount,
+    required this.point,
   });
 
   UserProfileModel.empty()
@@ -27,7 +29,8 @@ class UserProfileModel {
       link = "",
       hasAvatar = false,
       followers = [],
-      followerCount = 0;
+      followerCount = 0,
+      point = 0;
 
   UserProfileModel.fromJson(Map<String, dynamic> json)
     : uid = json["uid"],
@@ -41,7 +44,8 @@ class UserProfileModel {
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      followerCount = json["followerCount"];
+      followerCount = json["followerCount"],
+      point = json["point"] ?? 0;
 
   Map<String, dynamic> toJson() {
     return {
@@ -53,6 +57,7 @@ class UserProfileModel {
       "hasAvatar": hasAvatar,
       "followers": followers,
       "followerCount": followerCount,
+      "point": point,
     };
   }
 
@@ -65,6 +70,7 @@ class UserProfileModel {
     bool? hasAvatar,
     List<String>? followers,
     int? followerCount,
+    int? point,
   }) {
     return UserProfileModel(
       uid: uid ?? this.uid,
@@ -75,6 +81,7 @@ class UserProfileModel {
       hasAvatar: hasAvatar ?? this.hasAvatar,
       followers: followers ?? this.followers,
       followerCount: followerCount ?? this.followerCount,
+      point: point ?? this.point,
     );
   }
 }

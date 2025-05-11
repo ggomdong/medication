@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../views/widgets/medication_info.dart';
+import '../views/widgets/persistent_tab_bar.dart';
 import '../notification/notification_list.dart';
 import '../repos/authentication_repo.dart';
 import '../view_models/settings_view_model.dart';
 import '../notification/notification_service.dart';
 import '../router.dart';
-import '../views/widgets/custom_button.dart';
+// import '../views/widgets/custom_button.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 import '../view_models/user_view_model.dart';
@@ -85,7 +87,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                             actions: [
                               Text(
-                                "🅟 2,000",
+                                "🅟 ${data.point}",
                                 style: TextStyle(
                                   fontSize: 20,
                                   // color: Theme.of(context).primaryColor,
@@ -157,11 +159,12 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           Gaps.v10,
                                         ],
                                       ),
-                                      // Avatar(
-                                      //   uid: data.uid,
-                                      //   name: data.name,
-                                      //   hasAvatar: data.hasAvatar,
-                                      // ),
+                                      CircleAvatar(
+                                        radius: 36,
+                                        backgroundImage: AssetImage(
+                                          "assets/images/avatar.png",
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   Gaps.v6,
@@ -194,36 +197,58 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     textColor: Colors.red,
                                     onTap: () => _onShowModal(context, ref),
                                   ),
-                                  Divider(thickness: 0.5),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      GestureDetector(
-                                        onTap: openExactAlarmSettings,
-                                        child: CustomButton(text: "알람 권한 설정"),
-                                      ),
-                                      GestureDetector(
-                                        onTap: _removeAllAlarms,
-                                        child: CustomButton(text: "알람 삭제"),
-                                      ),
-                                    ],
-                                  ),
-                                  Gaps.v20,
+                                  // Divider(thickness: 0.5),
+                                  // Row(
+                                  //   mainAxisAlignment:
+                                  //       MainAxisAlignment.spaceBetween,
+                                  //   children: [
+                                  //     GestureDetector(
+                                  //       onTap: openExactAlarmSettings,
+                                  //       child: CustomButton(text: "알람 권한 설정"),
+                                  //     ),
+                                  //     GestureDetector(
+                                  //       onTap: _removeAllAlarms,
+                                  //       child: CustomButton(text: "알람 삭제"),
+                                  //     ),
+                                  //   ],
+                                  // ),
+                                  // Gaps.v20,
                                 ],
                               ),
                             ),
                           ),
-                          // SliverPersistentHeader(
-                          //   delegate: PersistentTabBar(),
-                          //   pinned: true,
-                          // ),
+                          SliverPersistentHeader(
+                            delegate: PersistentTabBar(),
+                            pinned: true,
+                          ),
                         ];
                       },
-                      body: NotificationList(),
+                      body: TabBarView(
+                        children: [
+                          // 복약 통계 탭
+                          MedicationInfo(),
+                          // 알림 내역 탭
+                          const NotificationList(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                bottomNavigationBar: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push(RouteURL.info),
+                    icon: Icon(Icons.edit),
+                    label: Text("건강정보 및 약 정보 입력"),
+                  ),
+                ),
+                // floatingActionButton: FloatingActionButton.extended(
+                //   onPressed: () {
+                //     context.push("/edit-profile-info");
+                //   },
+                //   label: Text("건강정보 및 약 정보 입력"),
+                //   icon: Icon(Icons.edit),
+                // ),
               ),
         );
   }

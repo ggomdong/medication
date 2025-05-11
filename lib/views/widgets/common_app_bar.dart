@@ -1,3 +1,4 @@
+import '../../view_models/user_view_model.dart';
 import '../../constants/sizes.dart';
 import '../../constants/gaps.dart';
 import '../../utils.dart';
@@ -13,6 +14,7 @@ class CommonAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = isDarkMode(ref);
+    final userState = ref.watch(usersProvider);
     return Padding(
       padding: const EdgeInsets.only(top: Sizes.size10),
       child: AppBar(
@@ -20,13 +22,17 @@ class CommonAppBar extends ConsumerWidget implements PreferredSizeWidget {
         titleSpacing: 0,
         title: Image.asset(isDark ? logoDarkmode : logo, height: 150),
         actions: [
-          Text(
-            "🅟 2,000",
-            style: TextStyle(
-              fontSize: 20,
-              // color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.w800,
-            ),
+          userState.when(
+            data:
+                (user) => Text(
+                  "🅟 ${user.point}", // ✅ 실제 포인트 표시
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+            loading: () => const CupertinoActivityIndicator(),
+            error: (e, _) => const Text("🅟 -"),
           ),
           Gaps.h20,
         ],

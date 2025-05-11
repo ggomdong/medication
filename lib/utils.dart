@@ -5,13 +5,11 @@ import 'package:android_intent_plus/flag.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:medication/router.dart';
+import '../router.dart';
 import '../models/schedule_model.dart';
 import '../view_models/settings_view_model.dart';
 
 bool isDarkMode(WidgetRef ref) => ref.watch(settingsProvider).darkMode;
-
-List<String> moodEmojiList = ["😀", "😍", "🥳", "😱", "😭", "🤯", "😡"];
 
 const String logo = 'assets/images/logo.png';
 const String logoDarkmode = 'assets/images/logo_darkmode.png';

@@ -1,8 +1,8 @@
 {
   "prescription_id": "p00001",
   "diagnosis": "급성 위염",
-  "startDate": "2025-05-01",
-  "endDate": "2025-05-07",
+  "startDate": "2025-05-15",
+  "endDate": "2025-05-20",
   "timing_description": "식전 30분",
   "times": {},
   "medicines": [

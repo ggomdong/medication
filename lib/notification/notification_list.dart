@@ -29,17 +29,16 @@ class NotificationList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final req = requests[index];
             final payload = req.payload ?? "";
-            print(payload);
             final parts = payload.split('|');
 
             final diagnosis = parts.isNotEmpty ? parts[0] : "-";
-            final prescriptionId = parts.length > 1 ? parts[1] : "-";
+            // final prescriptionId = parts.length > 1 ? parts[1] : "-";
             final scheduledTime =
                 parts.length > 2 ? DateTime.tryParse(parts[2]) : null;
 
             return ListTile(
               leading: const Icon(Icons.notifications_active),
-              title: Text("병명: $diagnosis"),
+              title: Text(diagnosis),
               // subtitle: Text("처방전 ID: $prescriptionId"),
               trailing:
                   scheduledTime != null

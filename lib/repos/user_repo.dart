@@ -15,6 +15,10 @@ class UserRepository {
     final doc = await _db.collection("users").doc(uid).get();
     return doc.data();
   }
+
+  Future<void> updatePoint(String uid, int newPoint) async {
+    await _db.collection("users").doc(uid).update({"point": newPoint});
+  }
 }
 
 final userRepo = Provider((ref) => UserRepository());

@@ -1,3 +1,4 @@
+import '../../router.dart';
 import '../../models/medi_model.dart';
 import '../../models/prescription_model.dart';
 import '../../view_models/prescription_view_model.dart';
@@ -153,12 +154,25 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    widget.prescription.diagnosis,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Row(
+                    children: [
+                      Text(
+                        widget.prescription.diagnosis,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Gaps.h10,
+                      GestureDetector(
+                        onTap: () => context.push(RouteURL.chat),
+                        child: Icon(
+                          Icons.chat_outlined,
+                          size: Sizes.size16,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 PopupMenuButton<String>(
