@@ -6,6 +6,13 @@ class PrescriptionRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final _collection = 'prescriptions';
 
+  /// 처방전 ID 존재 여부 확인
+  Future<bool> prescriptionExists(String prescriptionId) async {
+    final doc = await _db.collection(_collection).doc(prescriptionId).get();
+    return doc.exists;
+  }
+
+  /// 처방전 저장
   Future<String> savePrescription(PrescriptionModel model) async {
     // Firestore에 먼저 저장하고 docRef 받아옴
     final docRef = await _db.collection(_collection).add(model.toJson());
@@ -17,6 +24,7 @@ class PrescriptionRepository {
     return docRef.id;
   }
 
+  /// 처방전 삭제
   Future<void> deletePrescription(String id) async {
     final docRef = _db.collection(_collection).doc(id);
     final doc = await docRef.get();
@@ -28,6 +36,7 @@ class PrescriptionRepository {
     }
   }
 
+  /// 처방전 Stream
   Stream<List<PrescriptionModel>> watchPrescriptionsByUser(String uid) {
     final snapshots =
         _db

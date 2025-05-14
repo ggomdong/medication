@@ -17,6 +17,10 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
     _scheduleRepo = ref.read(scheduleRepositoryProvider);
   }
 
+  Future<bool> checkExistPrescription(String prescriptionId) async {
+    return _repo.prescriptionExists(prescriptionId);
+  }
+
   Future<void> savePrescriptionAndSchedule(PrescriptionModel model) async {
     // 0. 알람 설정 유도 (미리 유도)
     final confirm = await confirmExactAlarmPermission();

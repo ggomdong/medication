@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../view_models/prescription_view_model.dart';
 import '../models/prescription_model.dart';
 import '../repos/authentication_repo.dart';
 import '../router.dart';
@@ -49,6 +50,31 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final jsonData = jsonDecode(decodedBody);
+
+        // 필수 필드 확인 (형식 검증)
+        if (!(jsonData.containsKey('prescription_id') &&
+            jsonData.containsKey('diagnosis') &&
+            jsonData.containsKey('medicines'))) {
+          throw FormatException("QR 형식 오류");
+        }
+
+        // 중복 확인
+        final prescriptionId = jsonData['prescription_id'];
+        final isExists = await ref
+            .read(prescriptionProvider.notifier)
+            .checkExistPrescription(prescriptionId);
+
+        print(isExists);
+
+        if (isExists) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("해당 처방전이 이미 등록되어 있습니다.")),
+            );
+          }
+          return;
+        }
+
         final uid = ref.read(authRepo).user?.uid ?? "";
         final createdAt = DateTime.now().millisecondsSinceEpoch;
 
@@ -64,7 +90,13 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
       } else {
         throw Exception('API 호출 실패');
       }
+    } on FormatException {
+      // QR 형식 오류에 대한 명확한 안내
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("올바른 처방전 QR코드를 스캔해주세요.")));
     } catch (e) {
+      // 일반 예외
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('오류: ${e.toString()}')));
