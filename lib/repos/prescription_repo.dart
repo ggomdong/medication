@@ -7,7 +7,10 @@ class PrescriptionRepository {
   final _collection = 'prescriptions';
 
   /// 처방전 ID 존재 여부 확인
-  Future<bool> prescriptionExists(String originalPrescriptionId) async {
+  Future<bool> prescriptionExists({
+    required String originalPrescriptionId,
+    required String uid,
+  }) async {
     final query =
         await _db
             .collection(_collection)
@@ -15,6 +18,7 @@ class PrescriptionRepository {
               'original_prescription_id',
               isEqualTo: originalPrescriptionId,
             )
+            .where('uid', isEqualTo: uid)
             .limit(1)
             .get();
     return query.docs.isNotEmpty;

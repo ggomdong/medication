@@ -33,10 +33,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
   }
 
-  void _onScaffoldTap() {
-    FocusScope.of(context).unfocus();
-  }
-
   void _goToPreviousPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
@@ -85,186 +81,184 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final prescriptionStream = ref.watch(prescriptionStreamProvider);
 
-    return GestureDetector(
-      onTap: _onScaffoldTap,
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: CommonAppBar(),
-        body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: Sizes.size16),
-          child: Column(
-            children: [
-              ValueListenableBuilder<DateTime>(
-                valueListenable: selectedDate,
-                builder: (context, selected, _) {
-                  return ValueListenableBuilder<DateTime>(
-                    valueListenable: weekStartDate,
-                    builder: (context, weekStart, _) {
-                      return Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            WeekDateSelector(
-                              weekStartDate: weekStart,
-                              selectedDate: selected,
-                              onDateSelected: (date) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: CommonAppBar(),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: Sizes.size16),
+        child: Column(
+          children: [
+            ValueListenableBuilder<DateTime>(
+              valueListenable: selectedDate,
+              builder: (context, selected, _) {
+                return ValueListenableBuilder<DateTime>(
+                  valueListenable: weekStartDate,
+                  builder: (context, weekStart, _) {
+                    return Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          WeekDateSelector(
+                            weekStartDate: weekStart,
+                            selectedDate: selected,
+                            onDateSelected: (date) {
+                              // ref
+                              //     .read(scheduleViewModelProvider.notifier)
+                              //     .setSelectedDate(date);
+                              selectedDate.value = date;
+                              final uid = ref.read(authRepo).user?.uid;
+                              if (uid != null) {
                                 ref
                                     .read(scheduleViewModelProvider.notifier)
-                                    .setSelectedDate(date);
-                              },
-                              onPreviousWeek:
-                                  () =>
-                                      weekStartDate.value = weekStart.subtract(
-                                        const Duration(days: 7),
-                                      ),
-                              onNextWeek:
-                                  () =>
-                                      weekStartDate.value = weekStart.add(
-                                        const Duration(days: 7),
-                                      ),
-                            ),
-                            const Divider(height: 1),
-                            Gaps.v10,
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.medication),
-                                  Gaps.h10,
-                                  Text(
-                                    "복약 스케쥴",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                    .loadSchedules(uid, date);
+                              }
+                            },
+                            onPreviousWeek:
+                                () =>
+                                    weekStartDate.value = weekStart.subtract(
+                                      const Duration(days: 7),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // 복약스케쥴도 selectedDate가 바뀌면 리빌드됨
-                            Expanded(
-                              child: DailyMedicationSchedule(date: selected),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-              Gaps.v10,
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Row(
-                  children: [
-                    Icon(Icons.list_alt),
-                    Gaps.h10,
-                    Text(
-                      "처방전 목록",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: prescriptionStream.when(
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text("오류 발생: $error")),
-                  data: (prescriptionList) {
-                    if (prescriptionList.isEmpty) {
-                      return const Center(child: Text("등록된 처방전이 없어요."));
-                    }
-
-                    return SizedBox(
-                      height: 240, // 카드 높이에 맞게 조절
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          PageView.builder(
-                            controller: _pageController,
-                            onPageChanged: (index) {
-                              setState(() {
-                                _currentPage = index;
-                              });
-                            },
-                            itemCount: prescriptionList.length,
-                            itemBuilder: (context, index) {
-                              final prescription = prescriptionList[index];
-                              final start = DateFormat(
-                                "yyyy.MM.dd",
-                              ).format(prescription.startDate);
-                              final end = DateFormat(
-                                "yyyy.MM.dd",
-                              ).format(prescription.endDate);
-                              final dateText = "$start ~ $end";
-
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                ),
-                                child: PrescriptionCard(
-                                  date: dateText,
-                                  prescription: prescription,
-                                ),
-                              );
-                            },
+                            onNextWeek:
+                                () =>
+                                    weekStartDate.value = weekStart.add(
+                                      const Duration(days: 7),
+                                    ),
                           ),
-                          if (_currentPage > 0)
-                            Positioned(
-                              left: 0,
-                              top: 90,
-                              child: GestureDetector(
-                                onTap: _goToPreviousPage,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black.withOpacity(0.3),
-                                  ),
-                                  padding: const EdgeInsets.all(8),
-                                  margin: const EdgeInsets.only(left: 8),
-                                  child: const Icon(
-                                    Icons.arrow_back_ios,
-                                    color: Colors.white,
+                          const Divider(height: 1),
+                          Gaps.v10,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: Row(
+                              children: [
+                                Icon(Icons.medication),
+                                Gaps.h10,
+                                Text(
+                                  "복약 스케쥴",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
+                          ),
 
-                          if (_currentPage < prescriptionList.length - 1)
-                            Positioned(
-                              right: 0,
-                              top: 90,
-                              child: GestureDetector(
-                                onTap: _goToNextPage,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black.withOpacity(0.3),
-                                  ),
-                                  padding: const EdgeInsets.all(8),
-                                  margin: const EdgeInsets.only(right: 8),
-                                  child: const Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
+                          // 복약스케쥴도 selectedDate가 바뀌면 리빌드됨
+                          Expanded(
+                            child: DailyMedicationSchedule(date: selected),
+                          ),
                         ],
                       ),
                     );
                   },
-                ),
+                );
+              },
+            ),
+            Gaps.v10,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.list_alt),
+                  Gaps.h10,
+                  Text(
+                    "처방전 목록",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: prescriptionStream.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text("오류 발생: $error")),
+                data: (prescriptionList) {
+                  if (prescriptionList.isEmpty) {
+                    return const Center(child: Text("등록된 처방전이 없어요."));
+                  }
+
+                  return SizedBox(
+                    height: 240, // 카드 높이에 맞게 조절
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        PageView.builder(
+                          controller: _pageController,
+                          onPageChanged: (index) {
+                            setState(() {
+                              _currentPage = index;
+                            });
+                          },
+                          itemCount: prescriptionList.length,
+                          itemBuilder: (context, index) {
+                            final prescription = prescriptionList[index];
+                            final start = DateFormat(
+                              "yyyy.MM.dd",
+                            ).format(prescription.startDate);
+                            final end = DateFormat(
+                              "yyyy.MM.dd",
+                            ).format(prescription.endDate);
+                            final dateText = "$start ~ $end";
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
+                              child: PrescriptionCard(
+                                date: dateText,
+                                prescription: prescription,
+                              ),
+                            );
+                          },
+                        ),
+                        if (_currentPage > 0)
+                          Positioned(
+                            left: 0,
+                            top: 90,
+                            child: GestureDetector(
+                              onTap: _goToPreviousPage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                margin: const EdgeInsets.only(left: 8),
+                                child: const Icon(
+                                  Icons.arrow_back_ios,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        if (_currentPage < prescriptionList.length - 1)
+                          Positioned(
+                            right: 0,
+                            top: 90,
+                            child: GestureDetector(
+                              onTap: _goToNextPage,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                margin: const EdgeInsets.only(right: 8),
+                                child: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../utils.dart';
 import '../view_models/prescription_view_model.dart';
 import '../models/prescription_model.dart';
 import '../repos/authentication_repo.dart';
@@ -60,20 +61,21 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
 
         // 중복 확인
         final originalPrescriptionId = jsonData['prescription_id'];
+        final uid = ref.read(authRepo).user?.uid ?? "";
         final isExists = await ref
             .read(prescriptionProvider.notifier)
-            .checkExistPrescription(originalPrescriptionId);
+            .checkExistPrescription(
+              originalPrescriptionId: originalPrescriptionId,
+              uid: uid,
+            );
 
         if (isExists) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("해당 처방전이 이미 등록되어 있습니다.")),
-            );
+            showSingleSnackBar(context, "이미 등록된 처방전입니다.");
           }
           return;
         }
 
-        final uid = ref.read(authRepo).user?.uid ?? "";
         final createdAt = DateTime.now().millisecondsSinceEpoch;
 
         final prescription = PrescriptionModel.fromJson(jsonData).copyWith(
@@ -118,10 +120,15 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
               if (isProcessing) return;
               isProcessing = true;
 
-              final barcode = barcodeCapture.barcodes.first;
-              final String? url = barcode.rawValue;
-              if (url != null) {
-                await fetchMedicineData(ref, context, url);
+              try {
+                final barcode = barcodeCapture.barcodes.first;
+                final String? url = barcode.rawValue;
+                if (url != null) {
+                  await fetchMedicineData(ref, context, url);
+                }
+              } finally {
+                await Future.delayed(const Duration(seconds: 2));
+                isProcessing = false;
               }
             },
           ),

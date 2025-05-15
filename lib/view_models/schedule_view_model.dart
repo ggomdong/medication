@@ -44,10 +44,10 @@ class ScheduleViewModel extends AsyncNotifier<List<ScheduleModel>> {
   }
 
   /// 날짜 변경 + 해당 날짜의 스케쥴 로드
-  Future<void> setSelectedDate(DateTime date) async {
-    _selectedDate = date;
-    await reload();
-  }
+  // Future<void> setSelectedDate(DateTime date) async {
+  //   _selectedDate = date;
+  //   await reload();
+  // }
 
   /// 복약 완료 처리
   Future<void> markAsTaken({

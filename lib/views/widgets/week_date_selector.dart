@@ -52,6 +52,7 @@ class WeekDateSelector extends StatelessWidget {
                         date,
                         selectedDate,
                       );
+                      print(selectedDate);
                       final weekdayLabel =
                           ['일', '월', '화', '수', '목', '금', '토'][date.weekday % 7];
 

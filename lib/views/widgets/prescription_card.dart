@@ -101,37 +101,37 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
               CupertinoActionSheetAction(
                 isDestructiveAction: true,
                 onPressed: () async {
-                  Navigator.pop(context); // 먼저 CupertinoActionSheet 닫기
+                  Navigator.pop(context); // ActionSheet 닫기
+                  await Future.delayed(Duration.zero); // context 안정화
 
-                  // 로딩 인디케이터 표시
+                  final overlayContext = navigatorKey.currentContext!;
+
                   showDialog(
-                    context: context,
+                    context: overlayContext,
                     barrierDismissible: false,
-                    barrierColor: Colors.black.withOpacity(0.3),
+                    barrierColor: Colors.black.withValues(alpha: 0.3),
                     builder:
                         (_) => const Center(child: CircularProgressIndicator()),
                   );
 
-                  final container = ProviderScope.containerOf(
-                    context,
-                    listen: false,
-                  );
-
                   try {
-                    await container
+                    await ProviderScope.containerOf(
+                          overlayContext,
+                          listen: false,
+                        )
                         .read(prescriptionProvider.notifier)
                         .deletePrescriptionAndSchedules(prescriptionId);
 
-                    Navigator.of(context).pop(); // 로딩 인디케이터 닫기
+                    Navigator.of(overlayContext).pop(); // 로딩 다이얼로그 닫기
 
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(overlayContext).showSnackBar(
                       const SnackBar(content: Text("처방전이 삭제되었습니다.")),
                     );
                   } catch (e) {
-                    Navigator.of(context).pop(); // 로딩 인디케이터 닫기
+                    Navigator.of(overlayContext).pop();
 
                     ScaffoldMessenger.of(
-                      context,
+                      overlayContext,
                     ).showSnackBar(SnackBar(content: Text("삭제 실패: $e")));
                   }
                 },

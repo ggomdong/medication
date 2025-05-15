@@ -18,8 +18,14 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
     _scheduleRepo = ref.read(scheduleRepositoryProvider);
   }
 
-  Future<bool> checkExistPrescription(String originalPrescriptionId) async {
-    return _repo.prescriptionExists(originalPrescriptionId);
+  Future<bool> checkExistPrescription({
+    required String originalPrescriptionId,
+    required String uid,
+  }) async {
+    return _repo.prescriptionExists(
+      originalPrescriptionId: originalPrescriptionId,
+      uid: uid,
+    );
   }
 
   Future<void> savePrescriptionAndSchedule(PrescriptionModel model) async {
@@ -81,7 +87,7 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
   }
 
   Future<void> deletePrescriptionAndSchedules(String prescriptionId) async {
-    state = const AsyncValue.loading(); // 🔄 로딩 시작
+    state = const AsyncValue.loading(); // 로딩 시작
 
     state = await AsyncValue.guard(() async {
       // 1. 관련 스케쥴 조회

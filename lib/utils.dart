@@ -15,15 +15,25 @@ const String logo = 'assets/images/logo.png';
 const String logoDarkmode = 'assets/images/logo_darkmode.png';
 const String appIcon = 'assets/images/app_icon.png';
 
-void showFirebaseErrorSnack(BuildContext context, Object? error) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      showCloseIcon: true,
-      content: Text(
-        (error as FirebaseException).message ?? "Something went wrong.",
-      ),
-    ),
-  );
+bool _snackBarVisible = false;
+
+void showSingleSnackBar(BuildContext context, String message) {
+  if (_snackBarVisible) return;
+
+  _snackBarVisible = true;
+
+  ScaffoldMessenger.of(context)
+      .showSnackBar(
+        SnackBar(
+          showCloseIcon: true,
+          content: Text(message),
+          duration: Duration(seconds: 1),
+        ),
+      )
+      .closed
+      .then((_) {
+        _snackBarVisible = false;
+      });
 }
 
 int notificationIdFromSchedule(ScheduleModel s) {
