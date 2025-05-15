@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../view_models/schedule_view_model.dart';
 import '../utils.dart';
 import '../notification/notification_service.dart';
 import '../models/schedule_model.dart';
@@ -17,8 +18,8 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
     _scheduleRepo = ref.read(scheduleRepositoryProvider);
   }
 
-  Future<bool> checkExistPrescription(String prescriptionId) async {
-    return _repo.prescriptionExists(prescriptionId);
+  Future<bool> checkExistPrescription(String originalPrescriptionId) async {
+    return _repo.prescriptionExists(originalPrescriptionId);
   }
 
   Future<void> savePrescriptionAndSchedule(PrescriptionModel model) async {
@@ -99,6 +100,9 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
 
       // 4. 처방전 삭제
       await _repo.deletePrescription(prescriptionId);
+
+      // 5. 복약스케쥴 reload
+      await ref.read(scheduleViewModelProvider.notifier).reload();
     });
   }
 }

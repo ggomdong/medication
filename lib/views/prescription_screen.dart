@@ -202,6 +202,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       final original = widget.prescription;
       final updated = PrescriptionModel(
         prescriptionId: original.prescriptionId,
+        originalPrescriptionId: original.originalPrescriptionId,
         diagnosis: original.diagnosis,
         medicines: original.medicines,
         startDate: original.startDate,

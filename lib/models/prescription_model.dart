@@ -2,6 +2,7 @@ import '../models/medi_model.dart';
 
 class PrescriptionModel {
   final String prescriptionId;
+  final String originalPrescriptionId; // QR에서 받은 일련번호, 처방전 중복 등록 방지를 위해 필요
   final String diagnosis; // 병명
   final List<MediModel> medicines; // 약 리스트
   final DateTime startDate; // 복약 기간 시작
@@ -13,6 +14,7 @@ class PrescriptionModel {
 
   PrescriptionModel({
     required this.prescriptionId,
+    required this.originalPrescriptionId,
     required this.diagnosis,
     required this.medicines,
     required this.startDate,
@@ -25,6 +27,7 @@ class PrescriptionModel {
 
   PrescriptionModel.fromJson(Map<String, dynamic> json, {String? docId})
     : prescriptionId = docId ?? json['prescription_id'],
+      originalPrescriptionId = json['prescription_id'],
       diagnosis = json['diagnosis'],
       medicines =
           (json['medicines'] as List)
@@ -47,6 +50,7 @@ class PrescriptionModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'original_prescription_id': originalPrescriptionId,
       'diagnosis': diagnosis,
       'medicines': medicines.map((e) => e.toJson()).toList(),
       'startDate': startDate.toIso8601String(),
@@ -60,6 +64,7 @@ class PrescriptionModel {
 
   PrescriptionModel copyWith({
     String? prescriptionId,
+    String? originalPrescriptionId,
     String? diagnosis,
     List<MediModel>? medicines,
     DateTime? startDate,
@@ -71,6 +76,8 @@ class PrescriptionModel {
   }) {
     return PrescriptionModel(
       prescriptionId: prescriptionId ?? this.prescriptionId,
+      originalPrescriptionId:
+          originalPrescriptionId ?? this.originalPrescriptionId,
       diagnosis: diagnosis ?? this.diagnosis,
       medicines: medicines ?? this.medicines,
       startDate: startDate ?? this.startDate,

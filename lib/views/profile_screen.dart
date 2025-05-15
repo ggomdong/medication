@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../views/widgets/point_indicator.dart';
 import '../views/widgets/medication_info.dart';
 import '../views/widgets/persistent_tab_bar.dart';
 import '../notification/notification_list.dart';
@@ -9,7 +10,6 @@ import '../repos/authentication_repo.dart';
 import '../view_models/settings_view_model.dart';
 import '../notification/notification_service.dart';
 import '../router.dart';
-// import '../views/widgets/custom_button.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 import '../view_models/user_view_model.dart';
@@ -85,17 +85,7 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                               isDark ? logoDarkmode : logo,
                               height: 150,
                             ),
-                            actions: [
-                              Text(
-                                "🅟 ${data.point}",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  // color: Theme.of(context).primaryColor,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              Gaps.h20,
-                            ],
+                            actions: [PointIndicator(), Gaps.h20],
                           ),
                           SliverToBoxAdapter(
                             child: Padding(

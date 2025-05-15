@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:medication/views/health_stats_screen.dart';
+import 'package:medication/views/widgets/health_chart_modal.dart';
 import '../../constants/gaps.dart';
 import '../../constants/sizes.dart';
 
@@ -11,12 +13,32 @@ class MedicationInfo extends StatelessWidget {
       padding: const EdgeInsets.all(Sizes.size16),
       children: [
         Row(
-          children: const [
+          children: [
             Icon(Icons.health_and_safety, color: Colors.red),
             Gaps.h8,
             Text(
               "나의 건강정보",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Gaps.h8,
+            IconButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  showDragHandle: true,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                  ),
+                  builder: (context) => HealthChartModal(),
+                );
+              },
+              // onPressed: () => context.push(RouteURL.healthStats),
+              icon: Icon(Icons.insert_chart_outlined, color: Colors.amber),
+              tooltip: '건강 통계 보기',
             ),
           ],
         ),

@@ -101,7 +101,17 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
               CupertinoActionSheetAction(
                 isDestructiveAction: true,
                 onPressed: () async {
-                  // Card가 dispose된 후에도 Provider에 접근
+                  Navigator.pop(context); // 먼저 CupertinoActionSheet 닫기
+
+                  // 로딩 인디케이터 표시
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    barrierColor: Colors.black.withOpacity(0.3),
+                    builder:
+                        (_) => const Center(child: CircularProgressIndicator()),
+                  );
+
                   final container = ProviderScope.containerOf(
                     context,
                     listen: false,
@@ -112,14 +122,14 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
                         .read(prescriptionProvider.notifier)
                         .deletePrescriptionAndSchedules(prescriptionId);
 
-                    // 다이얼로그 닫기
-                    Navigator.pop(context);
+                    Navigator.of(context).pop(); // 로딩 인디케이터 닫기
 
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text("처방전이 삭제되었습니다.")));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("처방전이 삭제되었습니다.")),
+                    );
                   } catch (e) {
-                    Navigator.of(context).pop(); // 다이얼로그 닫기
+                    Navigator.of(context).pop(); // 로딩 인디케이터 닫기
+
                     ScaffoldMessenger.of(
                       context,
                     ).showSnackBar(SnackBar(content: Text("삭제 실패: $e")));

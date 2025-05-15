@@ -7,9 +7,17 @@ class PrescriptionRepository {
   final _collection = 'prescriptions';
 
   /// 처방전 ID 존재 여부 확인
-  Future<bool> prescriptionExists(String prescriptionId) async {
-    final doc = await _db.collection(_collection).doc(prescriptionId).get();
-    return doc.exists;
+  Future<bool> prescriptionExists(String originalPrescriptionId) async {
+    final query =
+        await _db
+            .collection(_collection)
+            .where(
+              'original_prescription_id',
+              isEqualTo: originalPrescriptionId,
+            )
+            .limit(1)
+            .get();
+    return query.docs.isNotEmpty;
   }
 
   /// 처방전 저장

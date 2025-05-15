@@ -59,12 +59,10 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
         }
 
         // 중복 확인
-        final prescriptionId = jsonData['prescription_id'];
+        final originalPrescriptionId = jsonData['prescription_id'];
         final isExists = await ref
             .read(prescriptionProvider.notifier)
-            .checkExistPrescription(prescriptionId);
-
-        print(isExists);
+            .checkExistPrescription(originalPrescriptionId);
 
         if (isExists) {
           if (context.mounted) {
@@ -78,9 +76,12 @@ class _QRScanScreenState extends ConsumerState<QRScanScreen>
         final uid = ref.read(authRepo).user?.uid ?? "";
         final createdAt = DateTime.now().millisecondsSinceEpoch;
 
-        final prescription = PrescriptionModel.fromJson(
-          jsonData,
-        ).copyWith(prescriptionId: null, uid: uid, createdAt: createdAt);
+        final prescription = PrescriptionModel.fromJson(jsonData).copyWith(
+          prescriptionId: null,
+          originalPrescriptionId: jsonData['prescription_id'],
+          uid: uid,
+          createdAt: createdAt,
+        );
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {

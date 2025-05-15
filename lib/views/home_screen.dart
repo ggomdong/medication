@@ -24,6 +24,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late final ValueNotifier<DateTime> selectedDate;
   late final ValueNotifier<DateTime> weekStartDate;
+  late final PageController _pageController;
+  int _currentPage = 0;
 
   List<DateTime> get currentWeek {
     final today = DateTime.now();
@@ -35,6 +37,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     FocusScope.of(context).unfocus();
   }
 
+  void _goToPreviousPage() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _goToNextPage() {
+    _pageController.nextPage(
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     selectedDate = ValueNotifier(DateTime.now());
     weekStartDate = ValueNotifier(getStartOfWeek(DateTime.now()));
+    _pageController = PageController(viewportFraction: 0.85);
 
     // 복약 스케쥴 불러오기
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -58,6 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void dispose() {
     selectedDate.dispose();
     weekStartDate.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -88,13 +108,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               weekStartDate: weekStart,
                               selectedDate: selected,
                               onDateSelected: (date) {
-                                selectedDate.value = date;
-                                final uid = ref.read(authRepo).user?.uid;
-                                if (uid != null) {
-                                  ref
-                                      .read(scheduleViewModelProvider.notifier)
-                                      .loadSchedules(uid, date);
-                                }
+                                ref
+                                    .read(scheduleViewModelProvider.notifier)
+                                    .setSelectedDate(date);
                               },
                               onPreviousWeek:
                                   () =>
@@ -168,29 +184,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                     return SizedBox(
                       height: 240, // 카드 높이에 맞게 조절
-                      child: PageView.builder(
-                        controller: PageController(viewportFraction: 0.85),
-                        itemCount: prescriptionList.length,
-                        itemBuilder: (context, index) {
-                          final prescription = prescriptionList[index];
-                          final start = DateFormat(
-                            "yyyy.MM.dd",
-                          ).format(prescription.startDate);
-                          final end = DateFormat(
-                            "yyyy.MM.dd",
-                          ).format(prescription.endDate);
-                          final dateText = "$start ~ $end";
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          PageView.builder(
+                            controller: _pageController,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentPage = index;
+                              });
+                            },
+                            itemCount: prescriptionList.length,
+                            itemBuilder: (context, index) {
+                              final prescription = prescriptionList[index];
+                              final start = DateFormat(
+                                "yyyy.MM.dd",
+                              ).format(prescription.startDate);
+                              final end = DateFormat(
+                                "yyyy.MM.dd",
+                              ).format(prescription.endDate);
+                              final dateText = "$start ~ $end";
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
+                                child: PrescriptionCard(
+                                  date: dateText,
+                                  prescription: prescription,
+                                ),
+                              );
+                            },
+                          ),
+                          if (_currentPage > 0)
+                            Positioned(
+                              left: 0,
+                              top: 90,
+                              child: GestureDetector(
+                                onTap: _goToPreviousPage,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withOpacity(0.3),
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  margin: const EdgeInsets.only(left: 8),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: PrescriptionCard(
-                              date: dateText,
-                              prescription: prescription,
+
+                          if (_currentPage < prescriptionList.length - 1)
+                            Positioned(
+                              right: 0,
+                              top: 90,
+                              child: GestureDetector(
+                                onTap: _goToNextPage,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withOpacity(0.3),
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  margin: const EdgeInsets.only(right: 8),
+                                  child: const Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                          );
-                        },
+                        ],
                       ),
                     );
                   },
