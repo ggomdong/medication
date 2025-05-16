@@ -1,8 +1,10 @@
+import '../views/prescription_screen.dart';
+import '../models/prescription_model.dart';
+import '../views/widgets/month_date_selector.dart';
 import '../repos/authentication_repo.dart';
 import '../utils.dart';
 import '../view_models/schedule_view_model.dart';
 import '../views/widgets/daily_medication_schedule.dart';
-import '../views/widgets/week_date_selector.dart';
 import '../constants/sizes.dart';
 import '../constants/gaps.dart';
 import '../view_models/prescription_view_model.dart';
@@ -27,10 +29,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   late final PageController _pageController;
   int _currentPage = 0;
 
-  List<DateTime> get currentWeek {
-    final today = DateTime.now();
-    final startOfWeek = today.subtract(Duration(days: today.weekday % 7));
-    return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+  // List<DateTime> get currentWeek {
+  //   final today = DateTime.now();
+  //   final startOfWeek = today.subtract(Duration(days: today.weekday % 7));
+  //   return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+  // }
+
+  void _moveMonth(int offset) {
+    final base = selectedDate.value;
+    final newDate = DateTime(base.year, base.month + offset, 1);
+    selectedDate.value = newDate;
+
+    final uid = ref.read(authRepo).user?.uid;
+    if (uid != null) {
+      ref.read(scheduleViewModelProvider.notifier).loadSchedules(uid, newDate);
+    }
   }
 
   void _goToPreviousPage() {
@@ -69,6 +82,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  void _onWriteManualPrescription() {
+    final emptyPrescription = PrescriptionModel(
+      prescriptionId: '',
+      originalPrescriptionId: '',
+      diagnosis: '',
+      medicines: [],
+      startDate: DateTime.now(),
+      endDate: DateTime.now().add(const Duration(days: 7)),
+      timingDescription: '',
+      times: {},
+      uid: ref.read(authRepo).user?.uid ?? '',
+      createdAt: 0,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => PrescriptionScreen(
+              prescription: emptyPrescription,
+              isManual: true,
+            ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     selectedDate.dispose();
@@ -98,13 +137,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WeekDateSelector(
-                            weekStartDate: weekStart,
-                            selectedDate: selected,
+                          // WeekDateSelector(
+                          //   weekStartDate: weekStart,
+                          //   selectedDate: selected,
+                          //   onDateSelected: (date) {
+                          //     // ref
+                          //     //     .read(scheduleViewModelProvider.notifier)
+                          //     //     .setSelectedDate(date);
+                          //     selectedDate.value = date;
+                          //     final uid = ref.read(authRepo).user?.uid;
+                          //     if (uid != null) {
+                          //       ref
+                          //           .read(scheduleViewModelProvider.notifier)
+                          //           .loadSchedules(uid, date);
+                          //     }
+                          //   },
+                          //   onPreviousWeek:
+                          //       () =>
+                          //           weekStartDate.value = weekStart.subtract(
+                          //             const Duration(days: 7),
+                          //           ),
+                          //   onNextWeek:
+                          //       () =>
+                          //           weekStartDate.value = weekStart.add(
+                          //             const Duration(days: 7),
+                          //           ),
+                          // ),
+                          MonthDateSelector(
+                            currentMonth: selected,
+                            selectedDate: selectedDate.value,
+                            onToday: () {
+                              final today = DateTime.now();
+                              selectedDate.value = today;
+                              final uid = ref.read(authRepo).user?.uid;
+                              if (uid != null) {
+                                ref
+                                    .read(scheduleViewModelProvider.notifier)
+                                    .loadSchedules(uid, today);
+                              }
+                            },
                             onDateSelected: (date) {
-                              // ref
-                              //     .read(scheduleViewModelProvider.notifier)
-                              //     .setSelectedDate(date);
                               selectedDate.value = date;
                               final uid = ref.read(authRepo).user?.uid;
                               if (uid != null) {
@@ -113,16 +185,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     .loadSchedules(uid, date);
                               }
                             },
-                            onPreviousWeek:
-                                () =>
-                                    weekStartDate.value = weekStart.subtract(
-                                      const Duration(days: 7),
-                                    ),
-                            onNextWeek:
-                                () =>
-                                    weekStartDate.value = weekStart.add(
-                                      const Duration(days: 7),
-                                    ),
+                            onPreviousMonth: () => _moveMonth(-1),
+                            onNextMonth: () => _moveMonth(1),
                           ),
                           const Divider(height: 1),
                           Gaps.v10,
@@ -164,6 +228,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Text(
                     "처방전 목록",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Gaps.h10,
+                  TextButton.icon(
+                    onPressed: _onWriteManualPrescription,
+                    icon: const Icon(Icons.add),
+                    label: const Text("직접 등록"),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                    ),
                   ),
                 ],
               ),

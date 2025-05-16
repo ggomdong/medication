@@ -13,11 +13,13 @@ import '../constants/sizes.dart';
 class PrescriptionScreen extends ConsumerStatefulWidget {
   final PrescriptionModel prescription;
   final bool isModal;
+  final bool isManual;
 
   const PrescriptionScreen({
     super.key,
     required this.prescription,
     this.isModal = false,
+    this.isManual = false,
   });
 
   @override
@@ -25,11 +27,31 @@ class PrescriptionScreen extends ConsumerStatefulWidget {
 }
 
 class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
+  List<MediModel> _selectedMedicines = [];
+
+  final _diagnosisController = TextEditingController();
+
+  late DateTime _startDate;
+  late DateTime _endDate;
+
   final Map<String, List<String>> _times = {};
 
   @override
   void initState() {
     super.initState();
+
+    if (widget.isManual) {
+      _diagnosisController.text = '';
+      _selectedMedicines = [];
+      _startDate = DateTime.now();
+      _endDate = DateTime.now().add(const Duration(days: 7));
+    } else {
+      _diagnosisController.text = widget.prescription.diagnosis;
+      _selectedMedicines = widget.prescription.medicines;
+      _startDate = widget.prescription.startDate;
+      _endDate = widget.prescription.endDate;
+    }
+
     if (widget.isModal) {
       // 수정 → 기존 값만 채운다
       _times.addAll(widget.prescription.times);
@@ -41,6 +63,84 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
         "09:00": List.from(allMeds),
         "13:00": List.from(allMeds),
         "19:00": List.from(allMeds),
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _diagnosisController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectMedicines() async {
+    final result = await showDialog<List<MediModel>>(
+      context: context,
+      builder: (_) {
+        final selected = [..._selectedMedicines];
+        final dummyMeds = [
+          MediModel(
+            medicineId: 'm00001',
+            name: '오메가3',
+            ingredient: 'EPA+DHA',
+            type: '영양제',
+            link: 'https://...',
+          ),
+          MediModel(
+            medicineId: 'm00002',
+            name: '타이레놀',
+            ingredient: 'Acetaminophen',
+            type: '해열진통제',
+            link: 'https://...',
+          ),
+        ];
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text("약 선택"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      dummyMeds.map((m) {
+                        final checked = selected.any(
+                          (s) => s.medicineId == m.medicineId,
+                        );
+                        return CheckboxListTile(
+                          value: checked,
+                          title: Text(m.name),
+                          subtitle: Text(m.ingredient),
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              if (value == true) {
+                                selected.add(m);
+                              } else {
+                                selected.removeWhere(
+                                  (s) => s.medicineId == m.medicineId,
+                                );
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(selected),
+                  child: const Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedMedicines = result;
       });
     }
   }
@@ -203,10 +303,13 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       final updated = PrescriptionModel(
         prescriptionId: original.prescriptionId,
         originalPrescriptionId: original.originalPrescriptionId,
-        diagnosis: original.diagnosis,
-        medicines: original.medicines,
-        startDate: original.startDate,
-        endDate: original.endDate,
+        diagnosis:
+            widget.isManual
+                ? _diagnosisController.text.trim()
+                : original.diagnosis,
+        medicines: widget.isManual ? _selectedMedicines : original.medicines,
+        startDate: widget.isManual ? _startDate : original.startDate,
+        endDate: widget.isManual ? _endDate : original.endDate,
         timingDescription: original.timingDescription,
         times: _times,
         uid: original.uid,
@@ -270,6 +373,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   @override
   Widget build(BuildContext context) {
     final p = widget.prescription;
+    final isManual = widget.isManual;
     final sortedEntries =
         _times.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
@@ -283,7 +387,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                 : IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () {
-                    context.go(RouteURL.qr);
+                    isManual ? context.pop() : context.go(RouteURL.home);
                   },
                 ),
       ),
@@ -301,38 +405,148 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
                 Gaps.v10,
-                Text(p.diagnosis, style: const TextStyle(fontSize: 16)),
+                isManual
+                    ? TextFormField(
+                      controller: _diagnosisController,
+                      decoration: const InputDecoration(
+                        hintText: "예: 고혈압, 당뇨 등",
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                      ),
+                    )
+                    : Text(p.diagnosis, style: const TextStyle(fontSize: 16)),
                 Gaps.v20,
                 const Text(
                   "처방된 약 목록",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
                 Gaps.v10,
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children:
-                      p.medicines
-                          .map(
-                            (m) => GestureDetector(
-                              onTap: () => _showMedicineDetail(m),
-                              child: Tooltip(
-                                message: m.ingredient,
-                                child: Chip(label: Text(m.name)),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                ),
+                isManual
+                    ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children:
+                              _selectedMedicines
+                                  .map(
+                                    (m) => InputChip(
+                                      label: Text(m.name),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _selectedMedicines.remove(m);
+                                        });
+                                      },
+                                      onPressed: () => _showMedicineDetail(m),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                        Gaps.v10,
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text("약 추가"),
+                          onPressed: _selectMedicines,
+                        ),
+                      ],
+                    )
+                    : Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children:
+                          p.medicines
+                              .map(
+                                (m) => GestureDetector(
+                                  onTap: () => _showMedicineDetail(m),
+                                  child: Tooltip(
+                                    message: m.ingredient,
+                                    child: Chip(label: Text(m.name)),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                    ),
                 Gaps.v20,
                 Text(
-                  "복약 기간: ${p.startDate.toLocal().toString().split(' ')[0]} ~ ${p.endDate.toLocal().toString().split(' ')[0]}",
-                  style: const TextStyle(fontSize: 16),
+                  "복약 기간",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
+                Gaps.v8,
+                isManual
+                    ? Row(
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _startDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setState(() => _startDate = picked);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade400),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              "${_startDate.toLocal()}".split(' ')[0],
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                        Gaps.h12,
+                        const Text("~", style: TextStyle(fontSize: 18)),
+                        Gaps.h12,
+                        InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _endDate,
+                              firstDate: _startDate,
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null) {
+                              setState(() => _endDate = picked);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade400),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              "${_endDate.toLocal()}".split(' ')[0],
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                    : Text(
+                      "복약 기간: ${p.startDate.toLocal().toString().split(' ')[0]} ~ ${p.endDate.toLocal().toString().split(' ')[0]}",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+
                 Gaps.v10,
                 Text(
                   "복약 시점 설명: ${p.timingDescription}",
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 18),
                 ),
                 Gaps.v20,
                 const Text(

@@ -1,0 +1,288 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../constants/gaps.dart';
+
+class MonthDateSelector extends StatefulWidget {
+  final DateTime currentMonth;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+  final VoidCallback onPreviousMonth;
+  final VoidCallback onNextMonth;
+  final VoidCallback onToday;
+
+  const MonthDateSelector({
+    super.key,
+    required this.currentMonth,
+    required this.selectedDate,
+    required this.onDateSelected,
+    required this.onPreviousMonth,
+    required this.onNextMonth,
+    required this.onToday,
+  });
+
+  @override
+  State<MonthDateSelector> createState() => _MonthDateSelectorState();
+}
+
+class _MonthDateSelectorState extends State<MonthDateSelector> {
+  final ScrollController _scrollController = ScrollController();
+
+  List<DateTime> _getMonthDates(DateTime month) {
+    final firstDay = DateTime(month.year, month.month, 1);
+    final lastDay = DateTime(month.year, month.month + 1, 0);
+    return List.generate(
+      lastDay.day,
+      (index) => DateTime(month.year, month.month, index + 1),
+    );
+  }
+
+  void _scrollToSelectedDate() {
+    final dates = _getMonthDates(widget.currentMonth);
+    final index = dates.indexWhere(
+      (d) => DateUtils.isSameDay(d, widget.selectedDate),
+    );
+    if (index != -1) {
+      final itemWidth = 56.0;
+      final screenWidth = MediaQuery.of(context).size.width;
+      final offset = (index * itemWidth) - (screenWidth / 2) + (itemWidth / 2);
+      _scrollController.animateTo(
+        offset.clamp(0.0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant MonthDateSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final monthChanged =
+        !DateUtils.isSameMonth(widget.currentMonth, oldWidget.currentMonth);
+    final dateChanged =
+        !DateUtils.isSameDay(widget.selectedDate, oldWidget.selectedDate);
+
+    final isToday = DateUtils.isSameDay(widget.selectedDate, DateTime.now());
+
+    if (monthChanged || dateChanged || isToday) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToSelectedDate();
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (DateUtils.isSameMonth(widget.currentMonth, widget.selectedDate)) {
+        _scrollToSelectedDate();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dates = _getMonthDates(widget.currentMonth);
+    final monthLabel = DateFormat('yyyy년 M월').format(widget.currentMonth);
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 30,
+          width: double.infinity, // Stack 전체 너비 확보!
+          child: Stack(
+            children: [
+              // 가운데 정렬된 년월 + 화살표
+              Align(
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: widget.onPreviousMonth,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      monthLabel,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right_rounded, size: 28),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: widget.onNextMonth,
+                    ),
+                  ],
+                ),
+              ),
+
+              // TODAY 버튼
+              Positioned(
+                right: 80,
+                top: 0,
+                bottom: 0,
+                child: OutlinedButton(
+                  onPressed: widget.onToday,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blue),
+                    foregroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  child: const Text("TODAY"),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        Gaps.v8,
+        Stack(
+          children: [
+            SizedBox(
+              height: 60,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      dates.map((date) {
+                        final isToday = DateUtils.isSameDay(
+                          date,
+                          DateTime.now(),
+                        );
+                        final isSelected = DateUtils.isSameDay(
+                          date,
+                          widget.selectedDate,
+                        );
+                        final weekdayLabel =
+                            ['일', '월', '화', '수', '목', '금', '토'][date.weekday %
+                                7];
+
+                        return GestureDetector(
+                          onTap: () => widget.onDateSelected(date),
+                          child: Container(
+                            width: 48,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${date.day}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight:
+                                        isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                    color:
+                                        isSelected
+                                            ? Colors.blue
+                                            : isToday
+                                            ? Colors.orange
+                                            : Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  weekdayLabel,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        isSelected
+                                            ? Colors.blue
+                                            : isToday
+                                            ? Colors.orange
+                                            : Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                ),
+              ),
+            ),
+
+            // ← 좌측 스크롤 버튼
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onTap: () {
+                  _scrollController.animateTo(
+                    (_scrollController.offset - 150).clamp(
+                      0.0,
+                      _scrollController.position.maxScrollExtent,
+                    ),
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                },
+                child: Container(
+                  width: 32,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.transparent],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: const Icon(Icons.arrow_back_ios_new, size: 16),
+                ),
+              ),
+            ),
+
+            // → 우측 스크롤 버튼
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onTap: () {
+                  _scrollController.animateTo(
+                    (_scrollController.offset + 150).clamp(
+                      0.0,
+                      _scrollController.position.maxScrollExtent,
+                    ),
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                },
+                child: Container(
+                  width: 32,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.transparent, Colors.white],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: const Icon(Icons.arrow_forward_ios, size: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Gaps.v8,
+      ],
+    );
+  }
+}
