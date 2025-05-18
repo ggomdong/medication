@@ -76,39 +76,39 @@ class _EditMedicationInfoScreenState extends State<EditMedicationInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("건강정보 및 약 입력")),
+      appBar: AppBar(title: Text("건강정보 입력")),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildSectionTitle(Icons.health_and_safety, "건강정보"),
+          // _buildSectionTitle(Icons.health_and_safety, "건강정보"),
           _buildTextField("키 (cm)", _heightCtrl),
           _buildTextField("몸무게 (kg)", _weightCtrl),
           _buildTextField("나이", _ageCtrl),
           _buildTextField("혈압", _bloodPressureCtrl),
           _buildTextField("식사 시간 (쉼표로 구분)", _mealTimesCtrl),
           Gaps.v24,
-          _buildSectionTitle(Icons.medical_services, "복용중인 약"),
-          if (_medicineList.isEmpty) Text("등록된 약이 없습니다."),
-          ..._medicineList.map(
-            (m) => ListTile(
-              title: Text(m),
-              trailing: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  setState(() {
-                    _medicineList.remove(m);
-                  });
-                },
-              ),
-            ),
-          ),
-          Gaps.v12,
-          ElevatedButton.icon(
-            onPressed: _addMedicine,
-            icon: Icon(Icons.add),
-            label: Text("약 추가"),
-          ),
-          Gaps.v32,
+          // _buildSectionTitle(Icons.medical_services, "복용중인 약"),
+          // if (_medicineList.isEmpty) Text("등록된 약이 없습니다."),
+          // ..._medicineList.map(
+          //   (m) => ListTile(
+          //     title: Text(m),
+          //     trailing: IconButton(
+          //       icon: Icon(Icons.delete),
+          //       onPressed: () {
+          //         setState(() {
+          //           _medicineList.remove(m);
+          //         });
+          //       },
+          //     ),
+          //   ),
+          // ),
+          // Gaps.v12,
+          // ElevatedButton.icon(
+          //   onPressed: _addMedicine,
+          //   icon: Icon(Icons.add),
+          //   label: Text("약 추가"),
+          // ),
+          // Gaps.v32,
           ElevatedButton(
             onPressed: () {
               // TODO: 실제 저장 로직

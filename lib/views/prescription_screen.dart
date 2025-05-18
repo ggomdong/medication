@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils.dart';
 import '../router.dart';
 import '../models/medi_model.dart';
 import '../models/prescription_model.dart';
 import '../view_models/prescription_view_model.dart';
+import '../view_models/schedule_view_model.dart';
 import '../views/widgets/form_button.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
 
 class PrescriptionScreen extends ConsumerStatefulWidget {
   final PrescriptionModel prescription;
-  final bool isModal;
-  final bool isManual;
+  final bool isModal; // 수정 시에 모달로 띄우므로, 수정 여부
+  final bool isManual; // 직접 입력 여부
 
   const PrescriptionScreen({
     super.key,
@@ -34,6 +36,8 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   late DateTime _startDate;
   late DateTime _endDate;
 
+  final _timingDescController = TextEditingController();
+
   final Map<String, List<String>> _times = {};
 
   @override
@@ -45,11 +49,13 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       _selectedMedicines = [];
       _startDate = DateTime.now();
       _endDate = DateTime.now().add(const Duration(days: 7));
+      _timingDescController.text = '';
     } else {
       _diagnosisController.text = widget.prescription.diagnosis;
       _selectedMedicines = widget.prescription.medicines;
       _startDate = widget.prescription.startDate;
       _endDate = widget.prescription.endDate;
+      _timingDescController.text = widget.prescription.timingDescription;
     }
 
     if (widget.isModal) {
@@ -58,7 +64,9 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
     } else {
       // 신규 모드 → 기본 시간 3개 + 전체 약 할당
       final allMeds =
-          widget.prescription.medicines.map((m) => m.medicineId).toList();
+          (widget.isManual ? _selectedMedicines : widget.prescription.medicines)
+              .map((m) => m.medicineId)
+              .toList();
       _times.addAll({
         "09:00": List.from(allMeds),
         "13:00": List.from(allMeds),
@@ -70,6 +78,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   @override
   void dispose() {
     _diagnosisController.dispose();
+    _timingDescController.dispose();
     super.dispose();
   }
 
@@ -158,6 +167,10 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       context: context,
       builder: (_) {
         final selected = <String>[];
+        final medicineSource =
+            widget.isManual
+                ? _selectedMedicines
+                : widget.prescription.medicines;
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
@@ -166,7 +179,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children:
-                      widget.prescription.medicines.map((m) {
+                      medicineSource.map((m) {
                         return CheckboxListTile(
                           title: Text(m.name),
                           value: selected.contains(m.medicineId),
@@ -207,6 +220,10 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       context: context,
       builder: (_) {
         final selected = List<String>.from(_times[time] ?? []);
+        final medicineSource =
+            widget.isManual
+                ? _selectedMedicines
+                : widget.prescription.medicines;
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
@@ -215,7 +232,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children:
-                      widget.prescription.medicines.map((m) {
+                      medicineSource.map((m) {
                         return CheckboxListTile(
                           title: Text(m.name),
                           value: selected.contains(m.medicineId),
@@ -292,6 +309,36 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   void _onSubmit() async {
     if (_times.isEmpty) return;
 
+    if (widget.isManual) {
+      if (_diagnosisController.text.trim().isEmpty) {
+        showSingleSnackBar(context, "병명을 입력해주세요");
+        return;
+      }
+
+      if (_selectedMedicines.isEmpty) {
+        showSingleSnackBar(context, "약을 1개 이상 선택해주세요");
+        return;
+      }
+
+      if (_startDate.isAfter(_endDate)) {
+        showSingleSnackBar(context, "복약 종료일은 시작일 이후여야 합니다");
+        return;
+      }
+
+      // 약이 매핑되어 있지 않은 복약시간은 삭제
+      setState(() {
+        _times.removeWhere((time, meds) => meds.isEmpty);
+      });
+
+      if (_times.isEmpty) {
+        showSingleSnackBar(
+          context,
+          "복약 시간을 추가하고, 각 복약 시간에 복용할 약을 1개 이상 선택해주세요",
+        );
+        return;
+      }
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -310,7 +357,10 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
         medicines: widget.isManual ? _selectedMedicines : original.medicines,
         startDate: widget.isManual ? _startDate : original.startDate,
         endDate: widget.isManual ? _endDate : original.endDate,
-        timingDescription: original.timingDescription,
+        timingDescription:
+            widget.isManual
+                ? _timingDescController.text.trim()
+                : original.timingDescription,
         times: _times,
         uid: original.uid,
         createdAt: original.createdAt,
@@ -321,15 +371,21 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
           .read(prescriptionProvider.notifier)
           .savePrescriptionAndSchedule(updated);
 
-      // 완료 처리
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('처방전이 등록되었습니다.')));
-
       if (mounted) {
+        Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
+
+        await ref.read(scheduleViewModelProvider.notifier).reload(); // ✅ 스케쥴 갱신
+
+        // 완료 처리
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('처방전이 등록되었습니다.')));
+
+        if (widget.isManual) Navigator.of(context).pop(); // 뒤로 가기
         if (widget.isModal) {
           Navigator.of(context).pop(); // 수정이면 모달 닫기
         } else {
+          print("xx");
           context.go(RouteURL.home); // 신규 등록 화면이면 QR로 이동
         }
       }
@@ -376,6 +432,9 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
     final isManual = widget.isManual;
     final sortedEntries =
         _times.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+
+    final medicineSource =
+        widget.isManual ? _selectedMedicines : widget.prescription.medicines;
 
     return Scaffold(
       appBar: AppBar(
@@ -544,10 +603,27 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                     ),
 
                 Gaps.v10,
-                Text(
-                  "복약 시점 설명: ${p.timingDescription}",
-                  style: const TextStyle(fontSize: 18),
+                const Text(
+                  "복약 시점 설명",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
+                Gaps.v10,
+                isManual
+                    ? TextFormField(
+                      controller: _timingDescController,
+                      decoration: const InputDecoration(
+                        hintText: "예: 식후 30분, 자기 전 등",
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                      ),
+                    )
+                    : Text(
+                      "복약 시점 설명: ${p.timingDescription}",
+                      style: const TextStyle(fontSize: 16),
+                    ),
                 Gaps.v20,
                 const Text(
                   "복약 시간을 입력하세요",
@@ -560,7 +636,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                   final meds =
                       medIds
                           .map(
-                            (id) => widget.prescription.medicines.firstWhere(
+                            (id) => medicineSource.firstWhere(
                               (m) => m.medicineId == id,
                               orElse:
                                   () => MediModel(

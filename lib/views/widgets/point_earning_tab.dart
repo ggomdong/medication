@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../view_models/prescription_view_model.dart';
 import '../../view_models/schedule_view_model.dart';
-import '../../models/schedule_model.dart';
-import '../../models/prescription_model.dart';
-import '../../constants/gaps.dart';
-import '../../repos/prescription_repo.dart';
 
 class PointEarningTab extends ConsumerWidget {
   const PointEarningTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final schedulesAsync = ref.watch(scheduleViewModelProvider);
+    final schedulesAsync = ref.watch(scheduleStreamProvider);
     final prescriptionsAsync = ref.watch(prescriptionStreamProvider);
 
     return schedulesAsync.when(
@@ -33,9 +29,17 @@ class PointEarningTab extends ConsumerWidget {
                     final formattedDate =
                         "${takenAt.year}-${takenAt.month.toString().padLeft(2, '0')}-${takenAt.day.toString().padLeft(2, '0')} "
                         "${takenAt.hour.toString().padLeft(2, '0')}:${takenAt.minute.toString().padLeft(2, '0')}";
-                    return {"reason": "$diagnosis 약 복용", "date": formattedDate};
+                    return {
+                      "reason": "$diagnosis 약 복용",
+                      "date": formattedDate,
+                      "takenAt": takenAt,
+                    };
                   }).toList()
-                  ..sort((a, b) => b["date"]!.compareTo(a["date"]!));
+                  ..sort(
+                    (a, b) => (b["takenAt"] as DateTime).compareTo(
+                      a["takenAt"] as DateTime,
+                    ),
+                  );
 
             return ListView.separated(
               padding: const EdgeInsets.all(16),

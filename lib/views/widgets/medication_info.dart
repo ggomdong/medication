@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:medication/views/health_stats_screen.dart';
-import 'package:medication/views/widgets/health_chart_modal.dart';
+import 'package:go_router/go_router.dart';
+import '../../router.dart';
+import '../../views/widgets/health_chart_modal.dart';
 import '../../constants/gaps.dart';
 import '../../constants/sizes.dart';
 
@@ -48,20 +49,26 @@ class MedicationInfo extends StatelessWidget {
         _buildInfoRow("나이", "43세"),
         _buildInfoRow("혈압", "120/80"),
         _buildInfoRow("식사 시간", "08:00 / 12:00 / 18:00"),
-        Divider(thickness: 1),
-        Row(
-          children: const [
-            Icon(Icons.medical_services, color: Colors.blue),
-            Gaps.h8,
-            Text(
-              "복용중인 약 정보",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ],
+        Gaps.v16,
+        ElevatedButton.icon(
+          onPressed: () => context.push(RouteURL.info),
+          icon: Icon(Icons.edit),
+          label: Text("건강정보 입력"),
         ),
-        Gaps.v10,
-        _buildMedicineCard("오메가3", "하루 1회 식후 복용"),
-        _buildMedicineCard("혈압약", "아침 식전"),
+        // Divider(thickness: 1),
+        // Row(
+        //   children: const [
+        //     Icon(Icons.medical_services, color: Colors.blue),
+        //     Gaps.h8,
+        //     Text(
+        //       "복용중인 약 정보",
+        //       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        //     ),
+        //   ],
+        // ),
+        // Gaps.v10,
+        // _buildMedicineCard("오메가3", "하루 1회 식후 복용"),
+        // _buildMedicineCard("혈압약", "아침 식전"),
         // Gaps.v20,
         // Center(child: ElevatedButton(onPressed: () {}, child: Text("약 정보 수정"))),
       ],

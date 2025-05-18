@@ -122,7 +122,7 @@ class DailyMedicationSchedule extends ConsumerWidget {
                         .read(usersProvider.notifier)
                         .updatePoint(newTaken ? 10 : -10);
 
-                    // ✅ 설문조사 팝업 위치 (복약 완료한 경우에만)
+                    // 설문조사 팝업 위치 (복약 완료한 경우에만)
                     if (newTaken) {
                       await showSurveyDialog(context);
                     }
@@ -195,36 +195,6 @@ class _PillScheduleItem extends StatelessWidget {
     return Colors.red;
   }
 
-  String? getTakenEmoji(String scheduledTimeStr, int? takenAtMillis) {
-    final now = DateTime.now();
-
-    // 예정 시간 파싱 ("HH:mm" → DateTime)
-    final parts = scheduledTimeStr.split(":");
-    final scheduled = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(parts[0]),
-      int.parse(parts[1]),
-    );
-
-    // 아직 복약 전
-    if (takenAtMillis == null) {
-      final diff = now.difference(scheduled).inMinutes;
-      if (diff < 0) return null; // ✅ 이미지 유지 (기본 상태)
-      if (diff <= 30) return null; // 아직은 기다리는 중 (기본 상태)
-      return "😡"; // 복약 놓침
-    }
-
-    // 복약 완료 → 시간 차이로 이모지 결정
-    final taken = DateTime.fromMillisecondsSinceEpoch(takenAtMillis);
-    final diffMinutes = taken.difference(scheduled).inMinutes.abs();
-
-    if (diffMinutes <= 30) return "😊";
-    if (diffMinutes <= 60) return "😐";
-    return "😞";
-  }
-
   @override
   Widget build(BuildContext context) {
     final isTaken = schedule.isTaken;
@@ -242,7 +212,6 @@ class _PillScheduleItem extends StatelessWidget {
       scheduledTimeStr: schedule.time,
       takenAtMillis: schedule.takenAt,
     );
-    // final pillEmoji = getTakenEmoji(schedule.time, schedule.takenAt);
 
     return Column(
       children: [

@@ -8,13 +8,13 @@ class PointRankingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final myRank = 12;
-    final myPoints = 780;
+    final myPoints = 870;
+    final myRank = 1000 ~/ 10 - myPoints ~/ 10 + 1;
     final myWeeklyGain = 120;
 
     final achievements = [
       {"title": "7일 연속 복약", "icon": Icons.calendar_today, "unlocked": true},
-      {"title": "1000점 돌파!", "icon": Icons.bolt, "unlocked": false},
+      {"title": "1000 🅟 돌파!", "icon": Icons.bolt, "unlocked": false},
       {"title": "3개 약 동시 복용", "icon": Icons.medication, "unlocked": true},
       {"title": "아침/저녁 모두 복약", "icon": Icons.sunny, "unlocked": true},
       {"title": "한 달간 복약 유지", "icon": Icons.date_range, "unlocked": false},
@@ -74,44 +74,50 @@ class PointRankingTab extends StatelessWidget {
                       ),
                     ),
                     Gaps.v4,
-                    Stack(
-                      children: [
-                        Container(
-                          height: 6,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        Container(
-                          height: 6,
-                          width:
-                              (myPoints % 1000) /
-                              1000 *
-                              MediaQuery.of(context).size.width *
-                              0.6,
-                          decoration: BoxDecoration(
-                            color: Colors.deepOrange,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Gaps.v4,
                     TweenAnimationBuilder<int>(
                       duration: const Duration(seconds: 1),
                       tween: IntTween(begin: 0, end: myPoints),
                       builder: (context, value, child) {
-                        return Text(
-                          "$value점 / 1000점",
-                          style: const TextStyle(fontSize: 12),
+                        final progressWidth =
+                            (value % 1000) /
+                            1000 *
+                            MediaQuery.of(context).size.width *
+                            0.6;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Stack(
+                              children: [
+                                Container(
+                                  height: 6,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                Container(
+                                  height: 6,
+                                  width: progressWidth,
+                                  decoration: BoxDecoration(
+                                    color: Colors.deepOrange,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Gaps.v4,
+                            Text(
+                              "$value 🅟 / 1000 🅟",
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
                         );
                       },
                     ),
                     Gaps.v4,
                     Text(
-                      "+$myWeeklyGain점 (이번 주 증가량)",
+                      "+$myWeeklyGain 🅟 (이번 주 증가량)",
                       style: const TextStyle(fontSize: 12, color: Colors.green),
                     ),
                   ],
@@ -139,34 +145,42 @@ class PointRankingTab extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Gaps.v8,
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children:
-                    achievements.map((ach) {
-                      final unlocked = ach["unlocked"] as bool;
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            backgroundColor:
-                                unlocked ? Colors.orange : Colors.grey.shade300,
-                            child: Icon(
-                              ach["icon"] as IconData,
-                              color: unlocked ? Colors.white : Colors.grey,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      achievements.map((ach) {
+                        final unlocked = ach["unlocked"] as bool;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              backgroundColor:
+                                  unlocked
+                                      ? Colors.orange
+                                      : Colors.grey.shade300,
+                              child: Icon(
+                                ach["icon"] as IconData,
+                                color: unlocked ? Colors.white : Colors.grey,
+                              ),
                             ),
-                          ),
-                          Gaps.v4,
-                          Text(
-                            ach["title"] as String,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: unlocked ? Colors.black : Colors.grey,
+                            Gaps.v4,
+                            SizedBox(
+                              width: 90,
+                              child: Text(
+                                ach["title"] as String,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: unlocked ? Colors.black : Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+                          ],
+                        );
+                      }).toList(),
+                ),
               ),
             ],
           ),
@@ -183,7 +197,8 @@ class PointRankingTab extends StatelessWidget {
               final rank = index + 1;
               final isTop3 = rank <= 3;
               final isMe = rank == myRank;
-              final randomPoints = 1000 - rank * 10 + Random().nextInt(5);
+              final randomPoints =
+                  isMe ? myPoints : 1000 - rank * 10 + Random().nextInt(5);
               final weeklyGain = Random().nextInt(50) + 10;
 
               IconData? medalIcon;
@@ -228,9 +243,8 @@ class PointRankingTab extends StatelessWidget {
                     title: Row(
                       children: [
                         Text(
-                          isMe
-                              ? "나 (You)"
-                              : "Lv.${20 - rank} · ${faker.internet.userName()}",
+                          isMe ? "나 (You)" : faker.internet.userName(),
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontWeight:
                                 isMe ? FontWeight.bold : FontWeight.normal,
@@ -246,16 +260,12 @@ class PointRankingTab extends StatelessWidget {
                       ],
                     ),
                     subtitle: Text(
-                      "이번 주 +$weeklyGain점",
+                      "이번 주 +$weeklyGain 🅟",
                       style: const TextStyle(fontSize: 12, color: Colors.green),
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.monetization_on, color: Colors.orange),
-                        Gaps.h4,
-                        Text("$randomPoints점"),
-                      ],
+                    trailing: Text(
+                      "🅟 $randomPoints",
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ),

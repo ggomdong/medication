@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../views/health_stats_screen.dart';
 import '../views/point_stats_screen.dart';
 import '../views/chat_detail_screen.dart';
 import '../views/edit_medication_info_screen.dart';
@@ -90,11 +89,6 @@ final routerProvider = Provider((ref) {
         name: RouteName.pointStats,
         path: RouteURL.pointStats,
         builder: (context, state) => const PointStatsScreen(),
-      ),
-      GoRoute(
-        name: RouteName.healthStats,
-        path: RouteURL.healthStats,
-        builder: (context, state) => const HealthStatsScreen(),
       ),
     ],
   );

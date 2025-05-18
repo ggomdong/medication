@@ -224,14 +224,14 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                 ),
-                bottomNavigationBar: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.push(RouteURL.info),
-                    icon: Icon(Icons.edit),
-                    label: Text("건강정보 및 약 정보 입력"),
-                  ),
-                ),
+                // bottomNavigationBar: Padding(
+                //   padding: const EdgeInsets.all(16),
+                //   child: ElevatedButton.icon(
+                //     onPressed: () => context.push(RouteURL.info),
+                //     icon: Icon(Icons.edit),
+                //     label: Text("건강정보 및 약 정보 입력"),
+                //   ),
+                // ),
                 // floatingActionButton: FloatingActionButton.extended(
                 //   onPressed: () {
                 //     context.push("/edit-profile-info");

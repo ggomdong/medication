@@ -130,95 +130,87 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ValueListenableBuilder<DateTime>(
               valueListenable: selectedDate,
               builder: (context, selected, _) {
-                return ValueListenableBuilder<DateTime>(
-                  valueListenable: weekStartDate,
-                  builder: (context, weekStart, _) {
-                    return Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // WeekDateSelector(
-                          //   weekStartDate: weekStart,
-                          //   selectedDate: selected,
-                          //   onDateSelected: (date) {
-                          //     // ref
-                          //     //     .read(scheduleViewModelProvider.notifier)
-                          //     //     .setSelectedDate(date);
-                          //     selectedDate.value = date;
-                          //     final uid = ref.read(authRepo).user?.uid;
-                          //     if (uid != null) {
-                          //       ref
-                          //           .read(scheduleViewModelProvider.notifier)
-                          //           .loadSchedules(uid, date);
-                          //     }
-                          //   },
-                          //   onPreviousWeek:
-                          //       () =>
-                          //           weekStartDate.value = weekStart.subtract(
-                          //             const Duration(days: 7),
-                          //           ),
-                          //   onNextWeek:
-                          //       () =>
-                          //           weekStartDate.value = weekStart.add(
-                          //             const Duration(days: 7),
-                          //           ),
-                          // ),
-                          MonthDateSelector(
-                            currentMonth: selected,
-                            selectedDate: selectedDate.value,
-                            onToday: () {
-                              final today = DateTime.now();
-                              selectedDate.value = today;
-                              final uid = ref.read(authRepo).user?.uid;
-                              if (uid != null) {
-                                ref
-                                    .read(scheduleViewModelProvider.notifier)
-                                    .loadSchedules(uid, today);
-                              }
-                            },
-                            onDateSelected: (date) {
-                              selectedDate.value = date;
-                              final uid = ref.read(authRepo).user?.uid;
-                              if (uid != null) {
-                                ref
-                                    .read(scheduleViewModelProvider.notifier)
-                                    .loadSchedules(uid, date);
-                              }
-                            },
-                            onPreviousMonth: () => _moveMonth(-1),
-                            onNextMonth: () => _moveMonth(1),
-                          ),
-                          const Divider(height: 1),
-                          Gaps.v10,
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: Row(
-                              children: [
-                                Icon(Icons.medication),
-                                Gaps.h10,
-                                Text(
-                                  "복약 스케쥴",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // 복약스케쥴도 selectedDate가 바뀌면 리빌드됨
-                          Expanded(
-                            child: DailyMedicationSchedule(date: selected),
-                          ),
-                        ],
+                return Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // WeekDateSelector(
+                      //   weekStartDate: weekStart,
+                      //   selectedDate: selected,
+                      //   onDateSelected: (date) {
+                      //     // ref
+                      //     //     .read(scheduleViewModelProvider.notifier)
+                      //     //     .setSelectedDate(date);
+                      //     selectedDate.value = date;
+                      //     final uid = ref.read(authRepo).user?.uid;
+                      //     if (uid != null) {
+                      //       ref
+                      //           .read(scheduleViewModelProvider.notifier)
+                      //           .loadSchedules(uid, date);
+                      //     }
+                      //   },
+                      //   onPreviousWeek:
+                      //       () =>
+                      //           weekStartDate.value = weekStart.subtract(
+                      //             const Duration(days: 7),
+                      //           ),
+                      //   onNextWeek:
+                      //       () =>
+                      //           weekStartDate.value = weekStart.add(
+                      //             const Duration(days: 7),
+                      //           ),
+                      // ),
+                      MonthDateSelector(
+                        currentMonth: selected,
+                        selectedDate: selectedDate.value,
+                        onToday: () {
+                          final today = DateTime.now();
+                          selectedDate.value = today;
+                          final uid = ref.read(authRepo).user?.uid;
+                          if (uid != null) {
+                            ref
+                                .read(scheduleViewModelProvider.notifier)
+                                .loadSchedules(uid, today);
+                          }
+                        },
+                        onDateSelected: (date) {
+                          selectedDate.value = date;
+                          final uid = ref.read(authRepo).user?.uid;
+                          if (uid != null) {
+                            ref
+                                .read(scheduleViewModelProvider.notifier)
+                                .loadSchedules(uid, date);
+                          }
+                        },
+                        onPreviousMonth: () => _moveMonth(-1),
+                        onNextMonth: () => _moveMonth(1),
                       ),
-                    );
-                  },
+                      const Divider(height: 1),
+                      Gaps.v10,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Row(
+                          children: [
+                            Icon(Icons.medication),
+                            Gaps.h10,
+                            Text(
+                              "복약 스케쥴",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // 복약스케쥴도 selectedDate가 바뀌면 리빌드됨
+                      Expanded(child: DailyMedicationSchedule(date: selected)),
+                    ],
+                  ),
                 );
               },
             ),
-            Gaps.v10,
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Row(

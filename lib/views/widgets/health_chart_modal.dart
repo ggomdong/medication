@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:medication/constants/gaps.dart';
+import '../../constants/gaps.dart';
 
 class HealthChartModal extends StatefulWidget {
   const HealthChartModal({super.key});
@@ -15,21 +15,31 @@ class _HealthChartModalState extends State<HealthChartModal> {
   bool isDaily = true;
   DateTime selectedDate = DateTime.now();
 
-  void _selectDate() async {
-    if (isDaily) {
-      final picked = await showDatePicker(
-        context: context,
-        initialDate: selectedDate,
-        firstDate: DateTime(2023),
-        lastDate: DateTime.now(),
-      );
-      if (picked != null) setState(() => selectedDate = picked);
-    } else {
-      final picked = await showMonthPicker(
-        context: context,
-        initialDate: selectedDate,
-      );
-      if (picked != null) setState(() => selectedDate = picked);
+  // void _selectDate() async {
+  //   if (isDaily) {
+  //     final picked = await showDatePicker(
+  //       context: context,
+  //       initialDate: selectedDate,
+  //       firstDate: DateTime(2023),
+  //       lastDate: DateTime.now(),
+  //     );
+  //     if (picked != null) setState(() => selectedDate = picked);
+  //   } else {
+  //     final picked = await showMonthPicker(
+  //       context: context,
+  //       initialDate: selectedDate,
+  //     );
+  //     if (picked != null) setState(() => selectedDate = picked);
+  //   }
+  // }
+
+  void _selectMonth(BuildContext context) async {
+    final picked = await showMonthPicker(
+      context: context,
+      initialDate: selectedDate,
+    );
+    if (picked != null) {
+      setState(() => selectedDate = picked);
     }
   }
 
@@ -56,19 +66,35 @@ class _HealthChartModalState extends State<HealthChartModal> {
               children: const [Text('일별'), Text('월별')],
             ),
             Gaps.v8,
+            // TextButton.icon(
+            //   onPressed: _selectDate,
+            //   icon: const Icon(Icons.calendar_today),
+            //   label: Text(
+            //     isDaily
+            //         ? "${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일"
+            //         : "${selectedDate.year}년 ${selectedDate.month}월",
+            //   ),
+            // ),
             TextButton.icon(
-              onPressed: _selectDate,
+              onPressed: () => _selectMonth(context),
               icon: const Icon(Icons.calendar_today),
-              label: Text(
-                isDaily
-                    ? "${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일"
-                    : "${selectedDate.year}년 ${selectedDate.month}월",
+              label:
+                  isDaily
+                      ? Text("${selectedDate.year}년 ${selectedDate.month}월")
+                      : Text("${selectedDate.year}년"),
+            ),
+
+            Gaps.v16,
+            Expanded(
+              child: _BloodPressureChart(
+                isDaily: isDaily,
+                selectedDate: selectedDate,
               ),
             ),
-            Gaps.v16,
-            Expanded(child: _BloodPressureChart(isDaily: isDaily)),
             Gaps.v24,
-            Expanded(child: _WeightChart(isDaily: isDaily)),
+            Expanded(
+              child: _WeightChart(isDaily: isDaily, selectedDate: selectedDate),
+            ),
           ],
         ),
       ),
@@ -78,8 +104,12 @@ class _HealthChartModalState extends State<HealthChartModal> {
 
 class _BloodPressureChart extends StatelessWidget {
   final bool isDaily;
+  final DateTime selectedDate;
 
-  const _BloodPressureChart({required this.isDaily});
+  const _BloodPressureChart({
+    required this.isDaily,
+    required this.selectedDate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -89,29 +119,27 @@ class _BloodPressureChart extends StatelessWidget {
       return min + random.nextDouble() * (max - min);
     }
 
-    // 수축기
-    final systolicSpots =
+    final today = DateTime.now();
+    final maxIndex =
         isDaily
-            ? List.generate(31, (i) {
-              double y = generateInRange(110, 130);
-              return FlSpot(i.toDouble(), y);
-            })
-            : List.generate(12, (i) {
-              double y = generateInRange(110, 130);
-              return FlSpot(i.toDouble(), y);
-            });
+            ? (selectedDate.year == today.year &&
+                    selectedDate.month == today.month
+                ? today.day
+                : DateUtils.getDaysInMonth(
+                  selectedDate.year,
+                  selectedDate.month,
+                ))
+            : (selectedDate.year == today.year ? today.month : 12);
 
-    // 이완기
-    final diastolicSpots =
-        isDaily
-            ? List.generate(31, (i) {
-              double y = generateInRange(70, 85);
-              return FlSpot(i.toDouble(), y);
-            })
-            : List.generate(12, (i) {
-              double y = generateInRange(70, 85);
-              return FlSpot(i.toDouble(), y);
-            });
+    final systolicSpots = List.generate(maxIndex, (i) {
+      final y = generateInRange(110, 130);
+      return FlSpot(i.toDouble(), y);
+    });
+
+    final diastolicSpots = List.generate(maxIndex, (i) {
+      final y = generateInRange(70, 85);
+      return FlSpot(i.toDouble(), y);
+    });
 
     final labels =
         isDaily
@@ -126,41 +154,70 @@ class _BloodPressureChart extends StatelessWidget {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         Gaps.v12,
-        SizedBox(
-          height: 150,
-          child: LineChart(
-            LineChartData(
-              lineBarsData: [
-                LineChartBarData(
-                  spots: systolicSpots,
-                  isCurved: true,
-                  dotData: FlDotData(show: false),
-                  color: Colors.red,
-                ),
-                LineChartBarData(
-                  spots: diastolicSpots,
-                  isCurved: true,
-                  dotData: FlDotData(show: false),
-                  color: Colors.blueGrey,
-                ),
-              ],
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 28,
-                    getTitlesWidget: (value, meta) {
-                      // x축 라벨: 일별 또는 월별
-                      final int index = value.toInt();
+        Padding(
+          padding: const EdgeInsets.only(right: 16.0),
+          child: SizedBox(
+            height: 150,
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: isDaily ? 30 : 11,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: systolicSpots,
+                    isCurved: true,
+                    dotData: FlDotData(show: false),
+                    color: Colors.red,
+                  ),
+                  LineChartBarData(
+                    spots: diastolicSpots,
+                    isCurved: true,
+                    dotData: FlDotData(show: false),
+                    color: Colors.blueGrey,
+                  ),
+                ],
+                titlesData: FlTitlesData(
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false), // 위쪽 라벨 제거!
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      getTitlesWidget: (value, meta) {
+                        // x축 라벨: 일별 또는 월별
+                        final int index = value.toInt();
 
-                      if (index >= 0 && index < labels.length) {
-                        return Text(
-                          labels[index],
-                          style: const TextStyle(fontSize: 10),
+                        if (index >= 0 && index < labels.length) {
+                          return Text(
+                            labels[index],
+                            style: const TextStyle(fontSize: 10),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 36,
+                      getTitlesWidget: (value, meta) {
+                        return SideTitleWidget(
+                          space: 6,
+                          meta: meta,
+                          child: Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(fontSize: 10),
+                          ),
                         );
-                      }
-                      return const Text('');
-                    },
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false, // 또는 필요 시 true
+                    ),
                   ),
                 ),
               ),
@@ -174,8 +231,9 @@ class _BloodPressureChart extends StatelessWidget {
 
 class _WeightChart extends StatelessWidget {
   final bool isDaily;
+  final DateTime selectedDate;
 
-  const _WeightChart({required this.isDaily});
+  const _WeightChart({required this.isDaily, required this.selectedDate});
 
   @override
   Widget build(BuildContext context) {
@@ -185,16 +243,22 @@ class _WeightChart extends StatelessWidget {
       return min + random.nextDouble() * (max - min);
     }
 
-    final spots =
+    final today = DateTime.now();
+    final maxIndex =
         isDaily
-            ? List.generate(31, (i) {
-              double y = generateInRange(64, 66); // 몸무게
-              return FlSpot(i.toDouble(), y);
-            })
-            : List.generate(12, (i) {
-              double y = generateInRange(64, 66); // 몸무게
-              return FlSpot(i.toDouble(), y);
-            });
+            ? (selectedDate.year == today.year &&
+                    selectedDate.month == today.month
+                ? today.day
+                : DateUtils.getDaysInMonth(
+                  selectedDate.year,
+                  selectedDate.month,
+                ))
+            : (selectedDate.year == today.year ? today.month : 12);
+
+    final spots = List.generate(maxIndex, (i) {
+      final y = generateInRange(64, 66);
+      return FlSpot(i.toDouble(), y);
+    });
 
     final labels =
         isDaily
@@ -209,34 +273,63 @@ class _WeightChart extends StatelessWidget {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         Gaps.v12,
-        SizedBox(
-          height: 150,
-          child: LineChart(
-            LineChartData(
-              lineBarsData: [
-                LineChartBarData(
-                  spots: spots,
-                  isCurved: true,
-                  dotData: FlDotData(show: false),
-                  color: Colors.green,
-                ),
-              ],
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, _) {
-                      // x축 라벨: 일별 또는 월별
-                      final int index = value.toInt();
+        Padding(
+          padding: const EdgeInsets.only(right: 16.0),
+          child: SizedBox(
+            height: 150,
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: isDaily ? 30 : 11,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    dotData: FlDotData(show: false),
+                    color: Colors.green,
+                  ),
+                ],
+                titlesData: FlTitlesData(
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false), // 위쪽 라벨 제거!
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, _) {
+                        // x축 라벨: 일별 또는 월별
+                        final int index = value.toInt();
 
-                      if (index >= 0 && index < labels.length) {
-                        return Text(
-                          labels[index],
-                          style: const TextStyle(fontSize: 10),
+                        if (index >= 0 && index < labels.length) {
+                          return Text(
+                            labels[index],
+                            style: const TextStyle(fontSize: 10),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 36,
+                      getTitlesWidget: (value, meta) {
+                        return SideTitleWidget(
+                          space: 6,
+                          meta: meta,
+                          child: Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(fontSize: 10),
+                          ),
                         );
-                      }
-                      return const Text('');
-                    },
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false, // 또는 필요 시 true
+                    ),
                   ),
                 ),
               ),
@@ -252,47 +345,77 @@ Future<DateTime?> showMonthPicker({
   required BuildContext context,
   required DateTime initialDate,
 }) async {
-  DateTime selected = initialDate;
-
   return showDialog<DateTime>(
     context: context,
     builder: (context) {
-      int year = selected.year;
-      int month = selected.month;
+      int year = initialDate.year;
+      final now = DateTime.now();
 
-      return AlertDialog(
-        title: const Text("월 선택"),
-        content: SizedBox(
-          height: 250,
-          child: Column(
-            children: [
-              DropdownButton<int>(
-                value: year,
-                items:
-                    [2023, 2024, 2025]
-                        .map(
-                          (y) => DropdownMenuItem(value: y, child: Text('$y년')),
-                        )
-                        .toList(),
-                onChanged:
-                    (y) => y != null ? selected = DateTime(y, month) : null,
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("월 선택"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<int>(
+                    value: year,
+                    isExpanded: true,
+                    items:
+                        [2023, 2024, 2025]
+                            .map(
+                              (y) => DropdownMenuItem(
+                                value: y,
+                                child: Text('$y년'),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (y) {
+                      if (y != null) {
+                        setState(() {
+                          year = y;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(12, (i) {
+                      final m = i + 1;
+                      final isFuture =
+                          (year > now.year) ||
+                          (year == now.year && m > now.month);
+
+                      return SizedBox(
+                        width: 80,
+                        child: ElevatedButton(
+                          onPressed:
+                              isFuture
+                                  ? null
+                                  : () =>
+                                      Navigator.pop(context, DateTime(year, m)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isFuture ? Colors.grey[300] : null,
+                          ),
+                          child: Text(
+                            '$m월',
+                            style: TextStyle(
+                              color: isFuture ? Colors.grey : null,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
               ),
-              Wrap(
-                children: List.generate(12, (i) {
-                  final m = i + 1;
-                  return Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: ElevatedButton(
-                      onPressed:
-                          () => Navigator.pop(context, DateTime(year, m)),
-                      child: Text('$m월'),
-                    ),
-                  );
-                }),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       );
     },
   );

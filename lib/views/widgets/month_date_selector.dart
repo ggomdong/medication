@@ -126,7 +126,7 @@ class _MonthDateSelectorState extends State<MonthDateSelector> {
 
               // TODAY 버튼
               Positioned(
-                right: 80,
+                right: 0,
                 top: 0,
                 bottom: 0,
                 child: OutlinedButton(
@@ -154,66 +154,69 @@ class _MonthDateSelectorState extends State<MonthDateSelector> {
         Stack(
           children: [
             SizedBox(
-              height: 60,
+              height: 40,
               child: SingleChildScrollView(
                 controller: _scrollController,
                 scrollDirection: Axis.horizontal,
-                child: Row(
-                  children:
-                      dates.map((date) {
-                        final isToday = DateUtils.isSameDay(
-                          date,
-                          DateTime.now(),
-                        );
-                        final isSelected = DateUtils.isSameDay(
-                          date,
-                          widget.selectedDate,
-                        );
-                        final weekdayLabel =
-                            ['일', '월', '화', '수', '목', '금', '토'][date.weekday %
-                                7];
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children:
+                        dates.map((date) {
+                          final isToday = DateUtils.isSameDay(
+                            date,
+                            DateTime.now(),
+                          );
+                          final isSelected = DateUtils.isSameDay(
+                            date,
+                            widget.selectedDate,
+                          );
+                          final weekdayLabel =
+                              ['일', '월', '화', '수', '목', '금', '토'][date.weekday %
+                                  7];
 
-                        return GestureDetector(
-                          onTap: () => widget.onDateSelected(date),
-                          child: Container(
-                            width: 48,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${date.day}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight:
-                                        isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                    color:
-                                        isSelected
-                                            ? Colors.blue
-                                            : isToday
-                                            ? Colors.orange
-                                            : Colors.grey,
+                          return GestureDetector(
+                            onTap: () => widget.onDateSelected(date),
+                            child: Container(
+                              width: 48,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${date.day}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight:
+                                          isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                      color:
+                                          isSelected
+                                              ? Colors.blue
+                                              : isToday
+                                              ? Colors.orange
+                                              : Colors.grey,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  weekdayLabel,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color:
-                                        isSelected
-                                            ? Colors.blue
-                                            : isToday
-                                            ? Colors.orange
-                                            : Colors.grey,
+                                  Text(
+                                    weekdayLabel,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color:
+                                          isSelected
+                                              ? Colors.blue
+                                              : isToday
+                                              ? Colors.orange
+                                              : Colors.grey,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
+                  ),
                 ),
               ),
             ),
@@ -236,15 +239,23 @@ class _MonthDateSelectorState extends State<MonthDateSelector> {
                 },
                 child: Container(
                   width: 32,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.white, Colors.transparent],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.8), // 밝은 반투명 배경
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: Offset(1, 1),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.arrow_back_ios_new, size: 16),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 18,
+                    color: Colors.black54, // 진하지 않은 회색
+                  ),
                 ),
               ),
             ),
@@ -267,15 +278,23 @@ class _MonthDateSelectorState extends State<MonthDateSelector> {
                 },
                 child: Container(
                   width: 32,
-                  alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.transparent, Colors.white],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.8), // 밝은 반투명 배경
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: Offset(1, 1),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.arrow_forward_ios, size: 16),
+                  child: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: Colors.black54, // 진하지 않은 회색
+                  ),
                 ),
               ),
             ),

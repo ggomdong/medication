@@ -204,7 +204,7 @@ class _PrescriptionCardState extends ConsumerState<PrescriptionCard> {
                 ),
               ],
             ),
-            Gaps.v12,
+            Gaps.v8,
             Row(
               children: [
                 const Icon(Icons.calendar_month, size: 18, color: Colors.grey),

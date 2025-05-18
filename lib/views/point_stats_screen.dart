@@ -18,11 +18,11 @@ class PointStatsScreen extends StatelessWidget {
           title: const Text("포인트 통계"),
           actions: const [PointIndicator(), Gaps.h20],
           bottom: const TabBar(
-            tabs: [Tab(text: "적립"), Tab(text: "사용"), Tab(text: "랭킹")],
+            tabs: [Tab(text: "랭킹"), Tab(text: "적립"), Tab(text: "사용")],
           ),
         ),
         body: const TabBarView(
-          children: [PointEarningTab(), PointSpendingTab(), PointRankingTab()],
+          children: [PointRankingTab(), PointEarningTab(), PointSpendingTab()],
         ),
       ),
     );
