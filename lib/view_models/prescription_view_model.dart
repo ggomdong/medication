@@ -14,8 +14,8 @@ class PrescriptionViewModel extends AsyncNotifier<void> {
 
   @override
   Future<void> build() async {
-    _repo = ref.read(prescriptionRepoProvider);
-    _scheduleRepo = ref.read(scheduleRepositoryProvider);
+    _repo = ref.read(prescriptionRepo);
+    _scheduleRepo = ref.read(scheduleRepo);
   }
 
   Future<bool> checkExistPrescription({
@@ -118,7 +118,7 @@ final prescriptionProvider = AsyncNotifierProvider<PrescriptionViewModel, void>(
 );
 
 final prescriptionStreamProvider = StreamProvider.autoDispose((ref) {
-  final repo = ref.read(prescriptionRepoProvider);
+  final repo = ref.read(prescriptionRepo);
   final uid = ref.read(authRepo).user?.uid;
   if (uid == null) return const Stream.empty();
   return repo.watchPrescriptionsByUser(uid);

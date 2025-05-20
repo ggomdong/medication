@@ -68,4 +68,4 @@ class PrescriptionRepository {
   }
 }
 
-final prescriptionRepoProvider = Provider((ref) => PrescriptionRepository());
+final prescriptionRepo = Provider((ref) => PrescriptionRepository());

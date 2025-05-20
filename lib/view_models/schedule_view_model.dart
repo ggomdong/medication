@@ -10,7 +10,7 @@ class ScheduleViewModel extends AsyncNotifier<List<ScheduleModel>> {
   @override
   Future<List<ScheduleModel>> build() async {
     // 최초 build 시 로드할 내용 없으면 빈 리스트 반환
-    _repo = ref.read(scheduleRepositoryProvider);
+    _repo = ref.read(scheduleRepo);
     _selectedDate = DateTime.now(); // 초기 날짜 설정
     return await _repo.getSchedulesByDate(
       uid: ref.read(authRepo).user?.uid ?? "",
@@ -82,7 +82,7 @@ final scheduleViewModelProvider =
     );
 
 final scheduleStreamProvider = StreamProvider.autoDispose((ref) {
-  final repo = ref.read(scheduleRepositoryProvider);
+  final repo = ref.read(scheduleRepo);
   final uid = ref.read(authRepo).user?.uid;
   if (uid == null) return const Stream.empty();
   return repo.watchSchedules(uid);

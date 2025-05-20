@@ -8,7 +8,7 @@ import '../views/widgets/persistent_tab_bar.dart';
 import '../notification/notification_list.dart';
 import '../repos/authentication_repo.dart';
 import '../view_models/settings_view_model.dart';
-import '../notification/notification_service.dart';
+// import '../notification/notification_service.dart';
 import '../router.dart';
 import '../constants/gaps.dart';
 import '../constants/sizes.dart';
@@ -48,15 +48,15 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _removeAllAlarms() async {
-    final service = ref.read(notificationServiceProvider);
-    await service.cancelAllNotifications();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("모든 알림이 삭제되었습니다.")));
+  // void _removeAllAlarms() async {
+  //   final service = ref.read(notificationServiceProvider);
+  //   await service.cancelAllNotifications();
+  //   ScaffoldMessenger.of(
+  //     context,
+  //   ).showSnackBar(const SnackBar(content: Text("모든 알림이 삭제되었습니다.")));
 
-    setState(() {});
-  }
+  //   setState(() {});
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +80,18 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                           SliverAppBar(
                             centerTitle: false,
                             titleSpacing: 0,
-                            toolbarHeight: 70,
+                            toolbarHeight: 66,
                             title: Image.asset(
                               isDark ? logoDarkmode : logo,
                               height: 150,
                             ),
-                            actions: [PointIndicator(), Gaps.h20],
+                            actions: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: PointIndicator(),
+                              ),
+                              Gaps.h20,
+                            ],
                           ),
                           SliverToBoxAdapter(
                             child: Padding(

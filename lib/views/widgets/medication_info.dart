@@ -85,15 +85,15 @@ class MedicationInfo extends StatelessWidget {
     );
   }
 
-  Widget _buildMedicineCard(String name, String usage) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      child: ListTile(
-        title: Text(name),
-        subtitle: Text(usage),
-        trailing: Icon(Icons.chevron_right),
-        onTap: () {}, // 약 상세 보기 예정
-      ),
-    );
-  }
+  // Widget _buildMedicineCard(String name, String usage) {
+  //   return Card(
+  //     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+  //     child: ListTile(
+  //       title: Text(name),
+  //       subtitle: Text(usage),
+  //       trailing: Icon(Icons.chevron_right),
+  //       onTap: () {}, // 약 상세 보기 예정
+  //     ),
+  //   );
+  // }
 }

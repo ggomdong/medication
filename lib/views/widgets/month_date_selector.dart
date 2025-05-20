@@ -28,7 +28,7 @@ class _MonthDateSelectorState extends State<MonthDateSelector> {
   final ScrollController _scrollController = ScrollController();
 
   List<DateTime> _getMonthDates(DateTime month) {
-    final firstDay = DateTime(month.year, month.month, 1);
+    // final firstDay = DateTime(month.year, month.month, 1);
     final lastDay = DateTime(month.year, month.month + 1, 0);
     return List.generate(
       lastDay.day,

@@ -108,7 +108,7 @@ class PointRankingTab extends StatelessWidget {
                             ),
                             Gaps.v4,
                             Text(
-                              "$value 🅟 / 1000 🅟",
+                              "🅟 $value / 🅟 1000",
                               style: const TextStyle(fontSize: 12),
                             ),
                           ],

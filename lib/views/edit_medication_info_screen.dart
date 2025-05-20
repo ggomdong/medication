@@ -15,53 +15,53 @@ class _EditMedicationInfoScreenState extends State<EditMedicationInfoScreen> {
   final _ageCtrl = TextEditingController(text: '43');
   final _bloodPressureCtrl = TextEditingController(text: '120/80');
   final _mealTimesCtrl = TextEditingController(text: '08:00, 12:00, 18:00');
-  final List<String> _medicineList = ['오메가3 (하루 1회 식후복용)', '혈압약 (아침 식전)'];
+  // final List<String> _medicineList = ['오메가3 (하루 1회 식후복용)', '혈압약 (아침 식전)'];
 
-  void _addMedicine() async {
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        final mediCtrl = TextEditingController();
-        return AlertDialog(
-          title: Text("약 추가"),
-          content: TextField(
-            controller: mediCtrl,
-            decoration: InputDecoration(labelText: "약 이름"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("취소"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (mediCtrl.text.trim().isNotEmpty) {
-                  Navigator.pop(context, mediCtrl.text.trim());
-                }
-              },
-              child: Text("추가"),
-            ),
-          ],
-        );
-      },
-    );
+  // void _addMedicine() async {
+  //   final result = await showDialog<String>(
+  //     context: context,
+  //     builder: (context) {
+  //       final mediCtrl = TextEditingController();
+  //       return AlertDialog(
+  //         title: Text("약 추가"),
+  //         content: TextField(
+  //           controller: mediCtrl,
+  //           decoration: InputDecoration(labelText: "약 이름"),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: Text("취소"),
+  //           ),
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               if (mediCtrl.text.trim().isNotEmpty) {
+  //                 Navigator.pop(context, mediCtrl.text.trim());
+  //               }
+  //             },
+  //             child: Text("추가"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
 
-    if (result != null && !_medicineList.contains(result)) {
-      setState(() {
-        _medicineList.add(result);
-      });
-    }
-  }
+  //   if (result != null && !_medicineList.contains(result)) {
+  //     setState(() {
+  //       _medicineList.add(result);
+  //     });
+  //   }
+  // }
 
-  Widget _buildSectionTitle(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, color: Theme.of(context).primaryColor),
-        Gaps.h8,
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
-      ],
-    );
-  }
+  // Widget _buildSectionTitle(IconData icon, String title) {
+  //   return Row(
+  //     children: [
+  //       Icon(icon, color: Theme.of(context).primaryColor),
+  //       Gaps.h8,
+  //       Text(title, style: Theme.of(context).textTheme.titleMedium),
+  //     ],
+  //   );
+  // }
 
   Widget _buildTextField(String label, TextEditingController controller) {
     return Padding(

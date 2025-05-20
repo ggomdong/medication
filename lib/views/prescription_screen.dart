@@ -89,18 +89,36 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
         final selected = [..._selectedMedicines];
         final dummyMeds = [
           MediModel(
-            medicineId: 'm00001',
-            name: '오메가3',
-            ingredient: 'EPA+DHA',
-            type: '영양제',
-            link: 'https://...',
+            medicineId: 'A11A1270A0060',
+            name: '게보린',
+            ingredient: '아세트아미노펜',
+            type: '해열진통제',
+            link:
+                'https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11A1270A0060',
           ),
           MediModel(
-            medicineId: 'm00002',
+            medicineId: '2021082400002',
             name: '타이레놀',
-            ingredient: 'Acetaminophen',
+            ingredient: '아세트아미노펜',
             type: '해열진통제',
-            link: 'https://...',
+            link:
+                'https://www.health.kr/searchDrug/result_drug.asp?drug_cd=2021082400002',
+          ),
+          MediModel(
+            medicineId: 'A11A1380A0008',
+            name: '아스피린',
+            ingredient: '아세트아미노펜',
+            type: '혈전용해제',
+            link:
+                'https://www.health.kr/searchDrug/result_drug.asp?drug_cd=A11A1380A0008',
+          ),
+          MediModel(
+            medicineId: '9ll3onueyk5hz',
+            name: '리피칸정',
+            ingredient: '아토르바스타틴칼슘삼수화물',
+            type: '동맥경화용제',
+            link:
+                'https://www.health.kr/searchDrug/result_drug.asp?drug_cd=9ll3onueyk5hz',
           ),
         ];
 

@@ -133,6 +133,6 @@ class ScheduleRepository {
   }
 }
 
-final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
+final scheduleRepo = Provider<ScheduleRepository>((ref) {
   return ScheduleRepository();
 });

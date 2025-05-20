@@ -66,7 +66,7 @@ class DailyMedicationSchedule extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: _PillScheduleItem(
                   schedule: sched,
-                  diagnosis: diagnosis ?? '정보 없음',
+                  diagnosis: diagnosis,
                   onToggle: () async {
                     final newTaken = !sched.isTaken;
                     DateTime? takenAt;

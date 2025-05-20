@@ -1,31 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../view_models/purchase_view_model.dart';
 
-class PointSpendingTab extends StatefulWidget {
+class PointSpendingTab extends ConsumerWidget {
   const PointSpendingTab({super.key});
 
   @override
-  State<PointSpendingTab> createState() => PointSpendingTabState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final purchasesAsync = ref.watch(purchaseProvider);
 
-class PointSpendingTabState extends State<PointSpendingTab>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: 6,
-      separatorBuilder: (_, __) => const Divider(),
-      itemBuilder:
-          (context, index) => ListTile(
-            leading: const Icon(Icons.remove_circle, color: Colors.red),
-            title: const Text("건강보조식품 구매"),
-            subtitle: const Text("2025-05-12 15:00"),
-            trailing: const Text("-300점", style: TextStyle(color: Colors.red)),
-          ),
+    return purchasesAsync.when(
+      data: (purchases) {
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: purchases.length,
+          separatorBuilder: (_, __) => const Divider(),
+          itemBuilder: (context, index) {
+            final p = purchases[index];
+            final formattedDate =
+                "${p.purchasedAt.year}-${p.purchasedAt.month.toString().padLeft(2, '0')}-${p.purchasedAt.day.toString().padLeft(2, '0')} "
+                "${p.purchasedAt.hour.toString().padLeft(2, '0')}:${p.purchasedAt.minute.toString().padLeft(2, '0')}";
+
+            return ListTile(
+              leading: const Icon(Icons.remove_circle, color: Colors.red),
+              title: Text(p.itemName),
+              subtitle: Text(formattedDate),
+              trailing: Text(
+                "-${p.price} 🅟",
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text("사용 내역을 불러오지 못했습니다: $e")),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

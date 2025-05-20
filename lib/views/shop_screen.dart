@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../views/widgets/common_app_bar.dart';
+import '../views/widgets/purchase_confirm_dialog.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -90,7 +90,7 @@ class _ShopScreenState extends State<ShopScreen> {
             : products.where((p) => p['category'] == selectedCategory).toList();
 
     return Scaffold(
-      appBar: CommonAppBar(),
+      // appBar: CommonAppBar(),
       body: Column(
         children: [
           // 카테고리 선택 바
@@ -173,32 +173,30 @@ class _ShopScreenState extends State<ShopScreen> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${item['price']}P',
+                              '🅟 ${item['price']}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: Colors.teal,
                               ),
                             ),
-                            GestureDetector(
-                              onTap:
-                                  () => ScaffoldMessenger.of(
-                                    context,
-                                  ).showSnackBar(
-                                    SnackBar(
-                                      content: Text("장바구니에 담았습니다."),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  ),
-                              child: Icon(
-                                Icons.shopping_cart,
+                            IconButton(
+                              icon: const Icon(
+                                Icons.redeem,
                                 color: Colors.teal,
                               ),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder:
+                                      (_) => PurchaseConfirmDialog(item: item),
+                                );
+                              },
                             ),
                           ],
                         ),

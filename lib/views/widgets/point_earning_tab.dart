@@ -52,8 +52,8 @@ class PointEarningTab extends ConsumerWidget {
                   title: Text(e["reason"]!),
                   subtitle: Text(e["date"]!),
                   trailing: const Text(
-                    "+10점",
-                    style: TextStyle(color: Colors.green),
+                    "+10 🅟",
+                    style: TextStyle(color: Colors.green, fontSize: 16),
                   ),
                 );
               },
