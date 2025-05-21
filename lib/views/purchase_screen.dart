@@ -22,9 +22,26 @@ class PurchaseScreen extends ConsumerWidget {
           itemBuilder: (context, index) {
             final item = purchases[index];
             return ListTile(
-              leading: const Icon(Icons.redeem, color: Colors.teal),
+              // leading: Image.asset(
+              //   item.image,
+              //   width: 40,
+              //   height: 40,
+              //   fit: BoxFit.cover,
+              // ),
+              // leading: ClipRRect(
+              //   borderRadius: BorderRadius.circular(20),
+              //   child: Image.asset(
+              //     item.image,
+              //     width: 40,
+              //     height: 40,
+              //     fit: BoxFit.cover,
+              //   ),
+              // ),
+              leading: CircleAvatar(backgroundImage: AssetImage(item.image)),
               title: Text(item.itemName),
-              subtitle: Text(DateFormat('yyyy.MM.dd').format(item.purchasedAt)),
+              subtitle: Text(
+                DateFormat('yyyy.MM.dd hh:mm:ss').format(item.purchasedAt),
+              ),
               trailing: Text(
                 "🅟 ${item.price}",
                 style: TextStyle(fontSize: 16),

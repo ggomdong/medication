@@ -58,6 +58,38 @@ class UsersViewModel extends AsyncNotifier<UserProfileModel> {
 
     state = AsyncValue.data(current.copyWith(point: newPoint));
   }
+
+  Future<void> updateHealthInfo({
+    required int? height,
+    required int? weight,
+    required int? age,
+    required String? bloodPressure,
+    required List<String>? mealTimes,
+  }) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    state = const AsyncValue.loading();
+
+    await _userRepository.updateHealthInfo(
+      current.uid,
+      height: height,
+      weight: weight,
+      age: age,
+      bloodPressure: bloodPressure,
+      mealTimes: mealTimes,
+    );
+
+    state = AsyncValue.data(
+      current.copyWith(
+        height: height,
+        weight: weight,
+        age: age,
+        bloodPressure: bloodPressure,
+        mealTimes: mealTimes,
+      ),
+    );
+  }
 }
 
 final usersProvider = AsyncNotifierProvider<UsersViewModel, UserProfileModel>(

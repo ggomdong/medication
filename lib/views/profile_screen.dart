@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../views/widgets/point_indicator.dart';
-import '../views/widgets/medication_info.dart';
+import '../views/widgets/health_info.dart';
 import '../views/widgets/persistent_tab_bar.dart';
 import '../notification/notification_list.dart';
 import '../repos/authentication_repo.dart';
@@ -221,8 +221,8 @@ class ProfileScreenState extends ConsumerState<ProfileScreen> {
                       },
                       body: TabBarView(
                         children: [
-                          // 복약 통계 탭
-                          MedicationInfo(),
+                          // 건강 정보 탭
+                          HealthInfo(),
                           // 알림 내역 탭
                           const NotificationList(),
                         ],

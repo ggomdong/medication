@@ -23,7 +23,7 @@ class _ShopScreenState extends State<ShopScreen> {
     {
       'name': '오메가3',
       'category': '건강보조식품',
-      'price': '300',
+      'price': '1300',
       'image': 'assets/images/shop_1.png',
     },
     {

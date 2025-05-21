@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../views/point_stats_screen.dart';
 import '../views/chat_detail_screen.dart';
-import '../views/edit_medication_info_screen.dart';
+import '../views/health_info_write_screen.dart';
 import '../models/prescription_model.dart';
 import '../views/prescription_screen.dart';
 import '../views/splash_screen.dart';
@@ -18,7 +18,7 @@ class RouteURL {
   static const home = "/home";
   static const qr = "/qr";
   static const prescription = "/prescription";
-  static const info = "/info";
+  static const healthInfo = "/health-info";
   static const chat = "/chat";
   static const pointStats = "/point-stats";
   static const healthStats = "/health-stats";
@@ -31,7 +31,7 @@ class RouteName {
   static const home = "home";
   static const qr = "qr";
   static const prescription = "prescription";
-  static const info = "info";
+  static const healthInfo = "health-info";
   static const chat = "chat";
   static const pointStats = "pointStats";
   static const healthStats = "healthStats";
@@ -76,9 +76,9 @@ final routerProvider = Provider((ref) {
         },
       ),
       GoRoute(
-        name: RouteName.info,
-        path: RouteURL.info,
-        builder: (context, state) => const EditMedicationInfoScreen(),
+        name: RouteName.healthInfo,
+        path: RouteURL.healthInfo,
+        builder: (context, state) => const HealthInfoWriteScreen(),
       ),
       GoRoute(
         name: RouteName.chat,
